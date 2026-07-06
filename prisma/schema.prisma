@@ -1,0 +1,395 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id            String      @id @default(uuid())
+  name          String
+  slug          String      @unique
+  logoUrl       String?
+  phone         String?
+  wilayaId      Int?
+  communeId     Int?
+  planId        String?
+  trialEndsAt   DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  deletedAt     DateTime?
+  memberships   Membership[]
+  customers     Customer[]
+  products      Product[]
+  categories    Category[]
+  orders        Order[]
+  deliveryPricings DeliveryPricing[]
+  publicForms   PublicOrderForm[]
+  subscriptions Subscription[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+}
+
+model User {
+  id             String       @id @default(uuid())
+  name           String
+  email          String       @unique
+  passwordHash   String
+  emailVerified  Boolean      @default(false)
+  image          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  accounts       Account[]
+  sessions       Session[]
+  memberships     Membership[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+  confirmedOrders Order[]
+  statusHistory  OrderStatusHistory[]
+  orderCallLogs  OrderCallLog[]
+}
+
+model Membership {
+  id             String       @id @default(uuid())
+  user           User         @relation(fields: [userId], references: [id])
+  userId         String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  role           MembershipRole
+  invitedAt      DateTime?
+  joinedAt       DateTime?    @default(now())
+  status         MembershipStatus
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([userId, organizationId])
+}
+
+enum MembershipRole {
+  OWNER
+  ADMIN
+  CONFIRMATION_AGENT
+  DELIVERY_AGENT
+  VIEWER
+}
+
+enum MembershipStatus {
+  PENDING
+  ACTIVE
+  REVOKED
+}
+
+model Wilaya {
+  id       Int      @id
+  code     String   @unique
+  nameFr   String
+  nameAr   String
+  communes Commune[]
+  customers Customer[]
+  orders    Order[]
+  deliveryPricings DeliveryPricing[]
+}
+
+model Commune {
+  id       Int      @id
+  wilaya   Wilaya    @relation(fields: [wilayaId], references: [id])
+  wilayaId Int
+  nameFr   String
+  nameAr   String
+  customers Customer[]
+  orders    Order[]
+
+  @@index([wilayaId])
+}
+
+model DeliveryCompany {
+  id           String  @id @default(uuid())
+  name         String  @unique
+  logoUrl      String?
+  apiSupported Boolean @default(false)
+  orders       Order[]
+  deliveryPricings DeliveryPricing[]
+}
+
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Plan {
+  id            String   @id @default(uuid())
+  name          String   @unique
+  priceMonthly  Int
+  maxOrdersPerMonth Int
+  maxUsers      Int
+  features      Json
+  subscriptions Subscription[]
+}
+
+model Category {
+  id             String    @id @default(uuid())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  name           String
+  parentId       String?
+  products       Product[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([organizationId, parentId])
+}
+
+model Product {
+  id             String    @id @default(uuid())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  category       Category?  @relation(fields: [categoryId], references: [id])
+  categoryId     String?
+  name           String
+  price          Int
+  cost           Int?
+  sku            String?
+  barcode        String?
+  stock          Int        @default(0)
+  imageUrls      String[]   @default([])
+  status         ProductStatus @default(ACTIVE)
+  orderItems     OrderItem[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@unique([organizationId, barcode])
+  @@index([organizationId, name])
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Customer {
+  id             String    @id @default(uuid())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  fullName       String
+  phone          String
+  altPhone       String?
+  wilaya         Wilaya    @relation(fields: [wilayaId], references: [id])
+  wilayaId       Int
+  commune        Commune   @relation(fields: [communeId], references: [id])
+  communeId      Int
+  address        String
+  notes          String?
+  isBlacklisted  Boolean   @default(false)
+  ordersCount    Int       @default(0)
+  orders         Order[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([organizationId, phone])
+  @@index([organizationId, phone])
+}
+
+model Order {
+  id                String      @id @default(uuid())
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  organizationId    String
+  orderNumber       String
+  customer          Customer?    @relation(fields: [customerId], references: [id])
+  customerId        String?
+  phoneSnapshot     String
+  wilaya            Wilaya       @relation(fields: [wilayaId], references: [id])
+  wilayaId          Int
+  commune           Commune      @relation(fields: [communeId], references: [id])
+  communeId         Int
+  addressSnapshot   String
+  deliveryCompany   DeliveryCompany? @relation(fields: [deliveryCompanyId], references: [id])
+  deliveryCompanyId String?
+  deliveryType      DeliveryType
+  deliveryCost      Int
+  subtotal          Int
+  discount          Int
+  total             Int
+  status            OrderStatus
+  source            OrderSource
+  confirmationAttempts Int      @default(0)
+  confirmedBy      User?         @relation(fields: [confirmedById], references: [id])
+  confirmedById    String?
+  confirmedAt      DateTime?
+  items            OrderItem[]
+  statusHistory    OrderStatusHistory[]
+  callLogs         OrderCallLog[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@unique([organizationId, orderNumber])
+  @@index([organizationId, status, createdAt])
+}
+
+enum DeliveryType {
+  HOME
+  STOP_DESK
+}
+
+enum OrderStatus {
+  NEW
+  CONFIRMED
+  PACKED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum OrderSource {
+  FACEBOOK
+  INSTAGRAM
+  TIKTOK
+  WHATSAPP
+  MANUAL
+  PUBLIC_FORM
+}
+
+model OrderItem {
+  id                   String   @id @default(uuid())
+  order                Order    @relation(fields: [orderId], references: [id])
+  orderId              String
+  product              Product? @relation(fields: [productId], references: [id])
+  productId            String?
+  productNameSnapshot  String
+  unitPriceSnapshot    Int
+  quantity             Int
+  lineTotal            Int
+}
+
+model OrderStatusHistory {
+  id          String      @id @default(uuid())
+  order       Order       @relation(fields: [orderId], references: [id])
+  orderId     String
+  fromStatus  OrderStatus
+  toStatus    OrderStatus
+  changedBy   User?       @relation(fields: [changedById], references: [id])
+  changedById String?
+  note        String?
+  createdAt   DateTime    @default(now())
+}
+
+model OrderCallLog {
+  id        String      @id @default(uuid())
+  order     Order       @relation(fields: [orderId], references: [id])
+  orderId   String
+  agent     User?       @relation(fields: [agentId], references: [id])
+  agentId   String?
+  outcome   CallOutcome
+  note      String?
+  calledAt  DateTime    @default(now())
+}
+
+enum CallOutcome {
+  NO_ANSWER
+  CONFIRMED
+  CANCELLED
+  RESCHEDULED
+}
+
+model DeliveryPricing {
+  id               String          @id @default(uuid())
+  organization     Organization    @relation(fields: [organizationId], references: [id])
+  organizationId   String
+  deliveryCompany  DeliveryCompany @relation(fields: [deliveryCompanyId], references: [id])
+  deliveryCompanyId String
+  wilaya           Wilaya          @relation(fields: [wilayaId], references: [id])
+  wilayaId         Int
+  homeDeliveryPrice Int
+  stopDeskPrice     Int
+
+  @@unique([organizationId, deliveryCompanyId, wilayaId])
+}
+
+model PublicOrderForm {
+  id             String      @id @default(uuid())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  slug           String      @unique
+  fieldsConfig   Json
+  themeColor     String?
+  isActive       Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+model Subscription {
+  id                String      @id @default(uuid())
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  organizationId    String
+  plan              Plan         @relation(fields: [planId], references: [id])
+  planId            String
+  status            SubscriptionStatus
+  currentPeriodEnd  DateTime?
+  provider          String?
+  providerRef       String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  TRIALING
+}
+
+model Notification {
+  id             String      @id @default(uuid())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  user           User?        @relation(fields: [userId], references: [id])
+  userId         String?
+  type           String
+  payload        Json
+  readAt         DateTime?
+  createdAt      DateTime    @default(now())
+}
+
+model AuditLog {
+  id             String      @id @default(uuid())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  user           User?        @relation(fields: [userId], references: [id])
+  userId         String?
+  action         String
+  entityType     String
+  entityId       String?
+  meta           Json
+  createdAt      DateTime    @default(now())
+}
