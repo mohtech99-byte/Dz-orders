@@ -23,7 +23,11 @@ export function CustomerForm({ initialValues, customerId, wilayas, communes }: C
 
   return (
     <form
-      action={customerId ? updateCustomerAction.bind(null, customerId) : createCustomerAction}
+      action={customerId ? ((formData: FormData) => {
+        void updateCustomerAction(customerId, formData);
+      }) : ((formData: FormData) => {
+        void createCustomerAction(formData);
+      })}
       className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950"
     >
       <div className="grid gap-6 md:grid-cols-2">

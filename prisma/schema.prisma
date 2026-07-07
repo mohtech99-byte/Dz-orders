@@ -222,36 +222,38 @@ model Customer {
 }
 
 model Order {
-  id                String      @id @default(uuid())
-  organization      Organization @relation(fields: [organizationId], references: [id])
-  organizationId    String
-  orderNumber       String
-  customer          Customer?    @relation(fields: [customerId], references: [id])
-  customerId        String?
-  phoneSnapshot     String
-  wilaya            Wilaya       @relation(fields: [wilayaId], references: [id])
-  wilayaId          Int
-  commune           Commune      @relation(fields: [communeId], references: [id])
-  communeId         Int
-  addressSnapshot   String
-  deliveryCompany   DeliveryCompany? @relation(fields: [deliveryCompanyId], references: [id])
-  deliveryCompanyId String?
-  deliveryType      DeliveryType
-  deliveryCost      Int
-  subtotal          Int
-  discount          Int
-  total             Int
-  status            OrderStatus
-  source            OrderSource
-  confirmationAttempts Int      @default(0)
-  confirmedBy      User?         @relation(fields: [confirmedById], references: [id])
-  confirmedById    String?
-  confirmedAt      DateTime?
-  items            OrderItem[]
-  statusHistory    OrderStatusHistory[]
-  callLogs         OrderCallLog[]
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  id                   String      @id @default(uuid())
+  organization         Organization @relation(fields: [organizationId], references: [id])
+  organizationId       String
+  orderNumber          String
+  customer             Customer?    @relation(fields: [customerId], references: [id])
+  customerId           String?
+  phoneSnapshot        String
+  wilaya               Wilaya       @relation(fields: [wilayaId], references: [id])
+  wilayaId             Int
+  commune              Commune      @relation(fields: [communeId], references: [id])
+  communeId            Int
+  addressSnapshot      String
+  deliveryCompany      DeliveryCompany? @relation(fields: [deliveryCompanyId], references: [id])
+  deliveryCompanyId    String?
+  deliveryType         DeliveryType
+  deliveryCost         Int
+  subtotal             Int
+  discount             Int
+  total                Int
+  status               OrderStatus
+  source               OrderSource
+  paymentMethod        PaymentMethod @default(COD)
+  notes                String?
+  confirmationAttempts Int         @default(0)
+  confirmedBy          User?         @relation(fields: [confirmedById], references: [id])
+  confirmedById        String?
+  confirmedAt          DateTime?
+  items                OrderItem[]
+  statusHistory        OrderStatusHistory[]
+  callLogs             OrderCallLog[]
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
 
   @@unique([organizationId, orderNumber])
   @@index([organizationId, status, createdAt])
@@ -279,6 +281,11 @@ enum OrderSource {
   WHATSAPP
   MANUAL
   PUBLIC_FORM
+}
+
+enum PaymentMethod {
+  COD
+  PREPAID
 }
 
 model OrderItem {

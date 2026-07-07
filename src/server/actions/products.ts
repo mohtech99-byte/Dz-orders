@@ -25,7 +25,7 @@ function parseProductInput(formData: FormData) {
   };
 }
 
-export async function createProductAction(_prevState: ProductFormState, formData: FormData): Promise<ProductFormState> {
+export async function createProductAction(formData: FormData): Promise<ProductFormState> {
   const input = parseProductInput(formData);
   const parsed = productSchema.safeParse(input);
 
@@ -48,7 +48,7 @@ export async function createProductAction(_prevState: ProductFormState, formData
   redirect('/products');
 }
 
-export async function updateProductAction(id: string, _prevState: ProductFormState, formData: FormData): Promise<ProductFormState> {
+export async function updateProductAction(id: string, formData: FormData): Promise<ProductFormState> {
   const input = parseProductInput(formData);
   const parsed = productSchema.safeParse(input);
 

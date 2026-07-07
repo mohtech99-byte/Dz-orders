@@ -18,7 +18,11 @@ export function ProductForm({ initialValues, productId, categories }: ProductFor
 
   return (
     <form
-      action={productId ? updateProductAction.bind(null, productId) : createProductAction}
+      action={productId ? ((formData: FormData) => {
+        void updateProductAction(productId, formData);
+      }) : ((formData: FormData) => {
+        void createProductAction(formData);
+      })}
       className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950"
     >
       <div className="grid gap-6 md:grid-cols-2">

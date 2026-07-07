@@ -24,7 +24,7 @@ function parseCustomerInput(formData: FormData) {
   };
 }
 
-export async function createCustomerAction(_prevState: CustomerFormState, formData: FormData): Promise<CustomerFormState> {
+export async function createCustomerAction(formData: FormData): Promise<CustomerFormState> {
   const input = parseCustomerInput(formData);
   const parsed = customerSchema.safeParse(input);
 
@@ -47,7 +47,7 @@ export async function createCustomerAction(_prevState: CustomerFormState, formDa
   redirect('/customers');
 }
 
-export async function updateCustomerAction(id: string, _prevState: CustomerFormState, formData: FormData): Promise<CustomerFormState> {
+export async function updateCustomerAction(id: string, formData: FormData): Promise<CustomerFormState> {
   const input = parseCustomerInput(formData);
   const parsed = customerSchema.safeParse(input);
 
