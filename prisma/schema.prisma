@@ -215,6 +215,7 @@ model Customer {
   orders         Order[]
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
 
   @@unique([organizationId, phone])
   @@index([organizationId, phone])
