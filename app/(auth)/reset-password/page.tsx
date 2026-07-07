@@ -2,12 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 
-export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('');
+export default function ResetPasswordPage() {
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token');
+  const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -16,34 +19,34 @@ export default function ForgotPasswordPage() {
     setError('');
     setMessage('');
 
-    const response = await fetch('/api/auth/forgot-password', {
+    const response = await fetch('/api/auth/reset-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ token, password })
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      setError('Please enter a valid email address.');
+      setError(data.message || 'Unable to reset password.');
       return;
     }
 
-    setMessage(data.message || 'If that email exists, we sent reset instructions.');
+    setMessage(data.message || 'Password updated successfully.');
   };
 
   return (
     <div className="mx-auto max-w-md rounded-3xl border border-slate-200 bg-white p-10 shadow-lg dark:border-slate-800 dark:bg-slate-950">
-      <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Forgot password</h1>
-      <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">We’ll send a secure reset link to your inbox.</p>
+      <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Reset password</h1>
+      <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Enter a new password for your account.</p>
       <form onSubmit={handleSubmit} className="mt-6 space-y-5">
         <div>
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <Label htmlFor="password">New password</Label>
+          <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </div>
         {error ? <p className="text-sm text-rose-600">{error}</p> : null}
         {message ? <p className="text-sm text-emerald-600">{message}</p> : null}
-        <Button type="submit">Send reset link</Button>
+        <Button type="submit">Update password</Button>
       </form>
       <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">
         <Link href="/login" className="font-medium text-slate-900 dark:text-slate-100">

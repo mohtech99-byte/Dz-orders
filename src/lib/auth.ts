@@ -1,10 +1,11 @@
+import type { NextAuthOptions } from 'next-auth';
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
-import { compare } from 'bcryptjs';
 import { prisma } from './db';
+import { authenticateUser } from '@/server/services/auth';
 
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   session: {
     strategy: 'jwt'
@@ -20,13 +21,18 @@ export const authOptions = {
         if (!credentials?.email || !credentials.password) {
           return null;
         }
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
-        });
-        if (!user) return null;
-        const isValid = await compare(credentials.password, user.passwordHash);
-        if (!isValid) return null;
-        return user;
+
+        const result = await authenticateUser(credentials.email as string, credentials.password as string);
+
+        if (!result) {
+          return null;
+        }
+
+        if (result.requiresVerification) {
+          throw new Error('EMAIL_NOT_VERIFIED');
+        }
+
+        return result.user;
       }
     })
   ],
@@ -45,7 +51,8 @@ export const authOptions = {
     }
   },
   pages: {
-    signIn: '/login'
+    signIn: '/login',
+    newUser: '/verify-email'
   }
 };
 

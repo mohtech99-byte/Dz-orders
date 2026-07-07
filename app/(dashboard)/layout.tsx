@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
-import './globals.css';
+import '../globals.css';
 import { DashboardSidebar } from '@/components/dashboard/sidebar';
 import { DashboardTopbar } from '@/components/dashboard/topbar';
 import { authOptions } from '@/lib/auth';

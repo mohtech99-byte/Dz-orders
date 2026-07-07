@@ -8,7 +8,7 @@ export async function POST(request: Request) {
 
   const result = registerSchema.safeParse(body);
   if (!result.success) {
-    return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
+    return NextResponse.json({ error: result.error.flatten().fieldErrors }, { status: 400 });
   }
 
   const { name, email, password } = result.data;
@@ -19,5 +19,5 @@ export async function POST(request: Request) {
   }
 
   await createUser(name, email, password);
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, message: 'Check your inbox to verify your email address.' });
 }
