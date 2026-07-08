@@ -37,8 +37,8 @@ export default function RegisterPage() {
       return;
     }
 
-    setMessage(data.message || 'Account created. Check your inbox to verify your email.');
-    router.push('/verify-email');
+    setMessage(data.message || 'Account created successfully.');
+    router.push('/login');
   };
 
   return (

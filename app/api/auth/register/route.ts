@@ -19,5 +19,7 @@ export async function POST(request: Request) {
   }
 
   await createUser(name, email, password);
-  return NextResponse.json({ ok: true, message: 'Check your inbox to verify your email address.' });
-}
+return NextResponse.json({
+  ok: true,
+  message: 'Registration successful.'
+});}

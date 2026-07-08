@@ -46,7 +46,7 @@ export async function createUser(name: string, email: string, password: string) 
         name,
         email,
         passwordHash,
-        emailVerified: false
+        emailVerified: true
       }
     });
 
@@ -67,15 +67,7 @@ export async function createUser(name: string, email: string, password: string) 
       }
     });
 
-    const token = await createToken(email, 'verification');
-    const verificationUrl = `${buildBaseUrl()}/verify-email?token=${token}`;
-
-    await sendEmail({
-      to: email,
-      subject: 'Verify your DZ Orders account',
-      html: `<p>Hello ${name},</p><p>Verify your email by clicking <a href="${verificationUrl}">here</a>.</p>`,
-      text: `Hello ${name}, verify your email by visiting ${verificationUrl}`
-    });
+   // Email verification disabled during development
 
     return user;
   });
