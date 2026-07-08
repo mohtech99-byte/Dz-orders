@@ -190,6 +190,7 @@ model Product {
 
   @@unique([organizationId, barcode])
   @@index([organizationId, name])
+  @@index([organizationId, status])
 }
 
 enum ProductStatus {
@@ -219,6 +220,8 @@ model Customer {
 
   @@unique([organizationId, phone])
   @@index([organizationId, phone])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, isBlacklisted])
 }
 
 model Order {
@@ -257,6 +260,9 @@ model Order {
 
   @@unique([organizationId, orderNumber])
   @@index([organizationId, status, createdAt])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, wilayaId, status])
+  @@index([organizationId, paymentMethod])
 }
 
 enum DeliveryType {
@@ -298,6 +304,9 @@ model OrderItem {
   unitPriceSnapshot    Int
   quantity             Int
   lineTotal            Int
+
+  @@index([orderId])
+  @@index([productId])
 }
 
 model OrderStatusHistory {
