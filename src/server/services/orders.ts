@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/session';
 import { orderSchema } from '@/lib/validations/orders';
-import { Prisma, type OrderStatus } from '@prisma/client';
+import { Prisma, type OrderStatus, type CallOutcome } from '@prisma/client';
 
 async function getOrganizationId() {
   const session = await getSession();
@@ -95,6 +95,10 @@ export async function getOrder(id: string) {
       },
       statusHistory: {
         orderBy: { createdAt: 'desc' }
+      },
+      callLogs: {
+        include: { agent: true },
+        orderBy: { calledAt: 'desc' }
       }
     }
   });
@@ -306,4 +310,66 @@ export async function updateOrderStatus(id: string, status: string, note?: strin
   });
 
   return updated;
+}
+
+/**
+ * Records a confirmation-call attempt for an order (Phase 6). Every attempt is
+ * logged with its agent, outcome, and timestamp — the order can only move
+ * from NEW to CONFIRMED or CANCELLED as the direct result of a logged call
+ * outcome, never through a raw status dropdown.
+ */
+export async function logOrderCallAttempt(id: string, input: { outcome: CallOutcome; note?: string }) {
+  const organizationId = await getOrganizationId();
+  const order = await prisma.order.findFirst({ where: { id, organizationId } });
+
+  if (!order) {
+    throw new Error('Order not found');
+  }
+
+  if (order.status !== 'NEW') {
+    throw new Error('This order is no longer awaiting confirmation.');
+  }
+
+  const session = await getSession();
+  const agentId = session?.user?.id ?? null;
+
+  const nextStatus: OrderStatus = input.outcome === 'CONFIRMED' ? 'CONFIRMED' : input.outcome === 'CANCELLED' ? 'CANCELLED' : 'NEW';
+
+  return prisma.$transaction(async (tx) => {
+    await tx.orderCallLog.create({
+      data: {
+        orderId: id,
+        agentId,
+        outcome: input.outcome,
+        note: input.note || null
+      }
+    });
+
+    const updatedOrder = await tx.order.update({
+      where: { id },
+      data: {
+        confirmationAttempts: { increment: 1 },
+        ...(nextStatus !== order.status
+          ? {
+              status: nextStatus,
+              ...(nextStatus === 'CONFIRMED' ? { confirmedById: agentId, confirmedAt: new Date() } : {})
+            }
+          : {})
+      }
+    });
+
+    if (nextStatus !== order.status) {
+      await tx.orderStatusHistory.create({
+        data: {
+          orderId: id,
+          fromStatus: order.status,
+          toStatus: nextStatus,
+          changedById: agentId,
+          note: `Auto-updated from confirmation call (${input.outcome})`
+        }
+      });
+    }
+
+    return updatedOrder;
+  });
 }

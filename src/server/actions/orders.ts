@@ -2,7 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { createOrder, deleteOrder, updateOrder, updateOrderStatus } from '@/server/services/orders';
+import { createOrder, deleteOrder, logOrderCallAttempt, updateOrder, updateOrderStatus } from '@/server/services/orders';
+import type { CallOutcome } from '@prisma/client';
 import { orderSchema } from '@/lib/validations/orders';
 
 export type OrderFormState = {
@@ -96,6 +97,17 @@ export async function updateOrderStatusAction(id: string, formData: FormData) {
   const status = formData.get('status')?.toString() ?? 'NEW';
   const note = formData.get('note')?.toString() ?? '';
   await updateOrderStatus(id, status, note);
+  revalidatePath('/orders');
+  revalidatePath(`/orders/${id}`);
+  redirect(`/orders/${id}`);
+}
+
+export async function logOrderCallAttemptAction(id: string, formData: FormData) {
+  const outcome = formData.get('outcome')?.toString() as CallOutcome;
+  const note = formData.get('note')?.toString() ?? '';
+
+  await logOrderCallAttempt(id, { outcome, note });
+
   revalidatePath('/orders');
   revalidatePath(`/orders/${id}`);
   redirect(`/orders/${id}`);

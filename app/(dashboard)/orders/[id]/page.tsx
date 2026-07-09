@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
+import { ConfirmationPanel } from '@/components/orders/confirmation-panel';
 import { deleteOrderAction, updateOrderStatusAction } from '@/server/actions/orders';
 import { getOrder } from '@/server/services/orders';
 
@@ -57,6 +58,10 @@ export default async function OrderDetailPage({ params }: { params: { id: string
               <dt className="text-sm font-medium text-slate-500">Status</dt>
               <dd className="mt-1 text-sm">{order.status}</dd>
             </div>
+            <div>
+              <dt className="text-sm font-medium text-slate-500">Confirmation attempts</dt>
+              <dd className="mt-1 text-sm">{order.confirmationAttempts}</dd>
+            </div>
           </div>
           <div className="mt-6">
             <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">Items</h3>
@@ -79,22 +84,42 @@ export default async function OrderDetailPage({ params }: { params: { id: string
         </div>
 
         <div className="space-y-6">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">Workflow</h3>
-            <form action={updateOrderStatusAction.bind(null, order.id)} className="mt-4 space-y-3">
-              <select name="status" defaultValue={order.status} className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950">
-                <option value="NEW">New</option>
-                <option value="CONFIRMED">Confirmed</option>
-                <option value="PACKED">Packed</option>
-                <option value="SHIPPED">Shipped</option>
-                <option value="DELIVERED">Delivered</option>
-                <option value="CANCELLED">Cancelled</option>
-                <option value="RETURNED">Returned</option>
-              </select>
-              <textarea name="note" rows={3} placeholder="Add a note for this status change" className="flex min-h-24 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950" />
-              <Button type="submit">Update status</Button>
-            </form>
-          </div>
+          {order.status === 'NEW' ? (
+            <ConfirmationPanel
+              orderId={order.id}
+              status={order.status}
+              confirmationAttempts={order.confirmationAttempts}
+              callLogs={order.callLogs}
+            />
+          ) : (
+            <>
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+                <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">Workflow</h3>
+                <form action={updateOrderStatusAction.bind(null, order.id)} className="mt-4 space-y-3">
+                  <select name="status" defaultValue={order.status} className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950">
+                    <option value="NEW">New</option>
+                    <option value="CONFIRMED">Confirmed</option>
+                    <option value="PACKED">Packed</option>
+                    <option value="SHIPPED">Shipped</option>
+                    <option value="DELIVERED">Delivered</option>
+                    <option value="CANCELLED">Cancelled</option>
+                    <option value="RETURNED">Returned</option>
+                  </select>
+                  <textarea name="note" rows={3} placeholder="Add a note for this status change" className="flex min-h-24 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950" />
+                  <Button type="submit">Update status</Button>
+                </form>
+              </div>
+
+              {order.callLogs.length > 0 ? (
+                <ConfirmationPanel
+                  orderId={order.id}
+                  status={order.status}
+                  confirmationAttempts={order.confirmationAttempts}
+                  callLogs={order.callLogs}
+                />
+              ) : null}
+            </>
+          )}
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
             <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">History</h3>
