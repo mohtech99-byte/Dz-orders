@@ -1,13 +1,28 @@
 import { PageHeader } from '@/components/shared/page-header';
-import { Card } from '@/components/ui/card';
+import { PublicFormSettings } from '@/components/settings/public-form-settings';
+import { getOwnPublicOrderForm } from '@/server/services/public-order-form';
 
-export default function SettingsPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function SettingsPage() {
+  const form = await getOwnPublicOrderForm();
+
   return (
     <div className="space-y-6">
       <PageHeader title="Settings" description="Update your store details." />
-      <Card>
-        <p className="text-sm text-slate-600 dark:text-slate-400">Settings will be available after setup.</p>
-      </Card>
+      <PublicFormSettings
+        form={
+          form
+            ? {
+                id: form.id,
+                slug: form.slug,
+                isActive: form.isActive,
+                themeColor: form.themeColor,
+                fieldsConfig: form.fieldsConfig as { headline?: string; subheadline?: string } | null
+              }
+            : null
+        }
+      />
     </div>
   );
 }
