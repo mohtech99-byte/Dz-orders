@@ -99,8 +99,9 @@ export interface DashboardPageData {
   wilayaPressure: DashboardWilayaPressureItem[];
 }
 
-const PENDING_STATUSES: OrderStatus[] = ['NEW', 'CONFIRMED', 'PACKED'];
-const IN_TRANSIT_STATUSES: OrderStatus[] = ['NEW', 'CONFIRMED', 'PACKED', 'SHIPPED'];
+const PENDING_STATUSES: OrderStatus[] = ['NEW', 'CALLING', 'CONFIRMED', 'READY_TO_SHIP', 'PACKED'];
+const IN_TRANSIT_STATUSES: OrderStatus[] = ['NEW', 'CALLING', 'CONFIRMED', 'READY_TO_SHIP', 'PACKED', 'SHIPPED'];
+const AWAITING_CONFIRMATION_STATUSES: OrderStatus[] = ['NEW', 'CALLING'];
 
 interface OrganizationContext {
   organizationId: string;
@@ -308,7 +309,7 @@ async function getDashboardSummaryImpl(organizationId: string, params: Dashboard
     getOrderCounts(organizationId, range, params),
     getOrderRevenue(organizationId, range, params),
     prisma.order.count({ where: { organizationId, status: { in: PENDING_STATUSES }, createdAt: { gte: range.from, lte: range.to } } }),
-    prisma.order.count({ where: { organizationId, status: 'CONFIRMED', createdAt: { gte: range.from, lte: range.to } } }),
+    prisma.order.count({ where: { organizationId, status: 'READY_TO_SHIP', createdAt: { gte: range.from, lte: range.to } } }),
     prisma.order.count({ where: { organizationId, status: 'DELIVERED', createdAt: { gte: range.from, lte: range.to } } }),
     prisma.order.count({ where: { organizationId, status: 'RETURNED', createdAt: { gte: range.from, lte: range.to } } }),
     prisma.customer.count({ where: { organizationId, deletedAt: null } }),
@@ -321,7 +322,7 @@ async function getDashboardSummaryImpl(organizationId: string, params: Dashboard
       buildCard('Orders', orders.current, orders.previous, `vs ${range.label.toLowerCase()}`),
       buildCard('Revenue', revenue.current, revenue.previous, 'vs previous period'),
       buildCard('Pending', pending, 0, 'Awaiting fulfillment'),
-      buildCard('Confirmed', confirmed, 0, 'Ready for packing'),
+      buildCard('Ready to ship', confirmed, 0, 'Confirmed and queued for packing'),
       buildCard('Delivered', delivered, 0, 'Completed orders'),
       buildCard('Returned', returned, 0, 'Needs follow-up'),
       buildCard('Customers', customers, 0, 'Active profiles'),
@@ -461,15 +462,26 @@ async function getDashboardRecentOrdersImpl(organizationId: string, params: Dash
 async function getDashboardOperationalAlertsImpl(organizationId: string, params: DashboardParams): Promise<DashboardAlertItem[]> {
   const range = buildDateRange(params);
 
-  const [awaitingConfirmation, pendingCount, returnedCount, deliveredCount, blacklistedCount] = await Promise.all([
-    prisma.order.count({ where: { organizationId, status: 'NEW', createdAt: { gte: range.from, lte: range.to } } }),
+  const [awaitingConfirmation, pendingCount, returnedCount, deliveredCount, blacklistedCount, followUpsDue] = await Promise.all([
+    prisma.order.count({ where: { organizationId, status: { in: AWAITING_CONFIRMATION_STATUSES }, createdAt: { gte: range.from, lte: range.to } } }),
     prisma.order.count({ where: { organizationId, status: { in: PENDING_STATUSES }, createdAt: { gte: range.from, lte: range.to } } }),
     prisma.order.count({ where: { organizationId, status: 'RETURNED', createdAt: { gte: range.from, lte: range.to } } }),
     prisma.order.count({ where: { organizationId, status: 'DELIVERED', createdAt: { gte: range.from, lte: range.to } } }),
-    prisma.customer.count({ where: { organizationId, deletedAt: null, isBlacklisted: true } })
+    prisma.customer.count({ where: { organizationId, deletedAt: null, isBlacklisted: true } }),
+    prisma.order.count({
+      where: { organizationId, status: { in: AWAITING_CONFIRMATION_STATUSES }, nextCallAt: { lte: new Date() } }
+    })
   ]);
 
   const alerts: DashboardAlertItem[] = [];
+
+  if (followUpsDue > 0) {
+    alerts.push({
+      title: `${followUpsDue} follow-up calls due`,
+      description: 'These customers asked for a callback or need a retry — reach out today.',
+      tone: 'warning'
+    });
+  }
 
   if (awaitingConfirmation > 0) {
     alerts.push({

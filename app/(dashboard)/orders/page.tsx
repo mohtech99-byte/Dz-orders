@@ -39,7 +39,9 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
         <select name="status" defaultValue={searchParams.status ?? ''} className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950">
           <option value="">All statuses</option>
           <option value="NEW">New</option>
+          <option value="CALLING">Calling</option>
           <option value="CONFIRMED">Confirmed</option>
+          <option value="READY_TO_SHIP">Ready to ship</option>
           <option value="PACKED">Packed</option>
           <option value="SHIPPED">Shipped</option>
           <option value="DELIVERED">Delivered</option>

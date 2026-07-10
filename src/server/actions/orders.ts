@@ -2,8 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { createOrder, deleteOrder, logOrderCallAttempt, updateOrder, updateOrderStatus } from '@/server/services/orders';
-import type { CallOutcome } from '@prisma/client';
+import { assignOrderAgent, createOrder, deleteOrder, logOrderCallAttempt, updateOrder, updateOrderStatus } from '@/server/services/orders';
+import type { CallOutcome, CancellationReason } from '@prisma/client';
 import { orderSchema } from '@/lib/validations/orders';
 
 export type OrderFormState = {
@@ -105,9 +105,27 @@ export async function updateOrderStatusAction(id: string, formData: FormData) {
 export async function logOrderCallAttemptAction(id: string, formData: FormData) {
   const outcome = formData.get('outcome')?.toString() as CallOutcome;
   const note = formData.get('note')?.toString() ?? '';
+  const nextCallAtRaw = formData.get('nextCallAt')?.toString();
+  const cancellationReasonRaw = formData.get('cancellationReason')?.toString();
 
-  await logOrderCallAttempt(id, { outcome, note });
+  const nextCallAt = nextCallAtRaw ? new Date(nextCallAtRaw) : undefined;
+  const cancellationReason = cancellationReasonRaw ? (cancellationReasonRaw as CancellationReason) : undefined;
 
+  await logOrderCallAttempt(id, {
+    outcome,
+    note,
+    nextCallAt: nextCallAt && !Number.isNaN(nextCallAt.getTime()) ? nextCallAt : undefined,
+    cancellationReason
+  });
+
+  revalidatePath('/orders');
+  revalidatePath(`/orders/${id}`);
+  redirect(`/orders/${id}`);
+}
+
+export async function assignOrderAgentAction(id: string, formData: FormData) {
+  const agentId = formData.get('agentId')?.toString() ?? '';
+  await assignOrderAgent(id, agentId || null);
   revalidatePath('/orders');
   revalidatePath(`/orders/${id}`);
   redirect(`/orders/${id}`);

@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/session';
 import { orderSchema } from '@/lib/validations/orders';
-import { Prisma, type OrderStatus, type CallOutcome } from '@prisma/client';
+import { Prisma, type OrderStatus, type CallOutcome, type CancellationReason } from '@prisma/client';
 
 async function getOrganizationId() {
   const session = await getSession();
@@ -99,7 +99,8 @@ export async function getOrder(id: string) {
       callLogs: {
         include: { agent: true },
         orderBy: { calledAt: 'desc' }
-      }
+      },
+      assignedAgent: true
     }
   });
 }
@@ -314,11 +315,20 @@ export async function updateOrderStatus(id: string, status: string, note?: strin
 
 /**
  * Records a confirmation-call attempt for an order (Phase 6). Every attempt is
- * logged with its agent, outcome, and timestamp — the order can only move
- * from NEW to CONFIRMED or CANCELLED as the direct result of a logged call
- * outcome, never through a raw status dropdown.
+ * logged with its agent, outcome, and timestamp. The order can only progress
+ * out of NEW/CALLING as the direct result of a logged call outcome:
+ *   - CONFIRMED  -> order moves CONFIRMED, then automatically READY_TO_SHIP
+ *   - CANCELLED  -> order moves CANCELLED (requires a cancellationReason)
+ *   - any other outcome (no answer, busy, phone off, wrong number, refused,
+ *     duplicate, rescheduled, callback requested) -> order enters/stays CALLING
+ * A follow-up reminder (nextCallAt) can be attached to any non-final outcome.
+ * The acting agent is auto-assigned to the order on first contact if nobody
+ * is assigned yet.
  */
-export async function logOrderCallAttempt(id: string, input: { outcome: CallOutcome; note?: string }) {
+export async function logOrderCallAttempt(
+  id: string,
+  input: { outcome: CallOutcome; note?: string; nextCallAt?: Date; cancellationReason?: CancellationReason }
+) {
   const organizationId = await getOrganizationId();
   const order = await prisma.order.findFirst({ where: { id, organizationId } });
 
@@ -326,14 +336,20 @@ export async function logOrderCallAttempt(id: string, input: { outcome: CallOutc
     throw new Error('Order not found');
   }
 
-  if (order.status !== 'NEW') {
+  if (order.status !== 'NEW' && order.status !== 'CALLING') {
     throw new Error('This order is no longer awaiting confirmation.');
+  }
+
+  if (input.outcome === 'CANCELLED' && !input.cancellationReason) {
+    throw new Error('A cancellation reason is required.');
   }
 
   const session = await getSession();
   const agentId = session?.user?.id ?? null;
+  const isFinal = input.outcome === 'CONFIRMED' || input.outcome === 'CANCELLED';
 
-  const nextStatus: OrderStatus = input.outcome === 'CONFIRMED' ? 'CONFIRMED' : input.outcome === 'CANCELLED' ? 'CANCELLED' : 'NEW';
+  const nextStatus: OrderStatus =
+    input.outcome === 'CONFIRMED' ? 'READY_TO_SHIP' : input.outcome === 'CANCELLED' ? 'CANCELLED' : 'CALLING';
 
   return prisma.$transaction(async (tx) => {
     await tx.orderCallLog.create({
@@ -341,7 +357,9 @@ export async function logOrderCallAttempt(id: string, input: { outcome: CallOutc
         orderId: id,
         agentId,
         outcome: input.outcome,
-        note: input.note || null
+        note: input.note || null,
+        nextCallAt: isFinal ? null : input.nextCallAt ?? null,
+        cancellationReason: input.outcome === 'CANCELLED' ? input.cancellationReason : null
       }
     });
 
@@ -349,27 +367,179 @@ export async function logOrderCallAttempt(id: string, input: { outcome: CallOutc
       where: { id },
       data: {
         confirmationAttempts: { increment: 1 },
+        assignedAgentId: order.assignedAgentId ?? agentId,
+        nextCallAt: isFinal ? null : input.nextCallAt ?? order.nextCallAt,
+        ...(input.outcome === 'CANCELLED'
+          ? { cancellationReason: input.cancellationReason, cancellationNote: input.note || null }
+          : {}),
         ...(nextStatus !== order.status
           ? {
               status: nextStatus,
-              ...(nextStatus === 'CONFIRMED' ? { confirmedById: agentId, confirmedAt: new Date() } : {})
+              ...(input.outcome === 'CONFIRMED' ? { confirmedById: agentId, confirmedAt: new Date() } : {})
             }
           : {})
       }
     });
 
     if (nextStatus !== order.status) {
-      await tx.orderStatusHistory.create({
-        data: {
-          orderId: id,
-          fromStatus: order.status,
-          toStatus: nextStatus,
-          changedById: agentId,
-          note: `Auto-updated from confirmation call (${input.outcome})`
-        }
-      });
+      if (input.outcome === 'CONFIRMED') {
+        // Two history entries so the timeline reflects the real pipeline:
+        // NEW/CALLING -> CONFIRMED -> READY_TO_SHIP
+        await tx.orderStatusHistory.create({
+          data: { orderId: id, fromStatus: order.status, toStatus: 'CONFIRMED', changedById: agentId, note: 'Confirmed by customer on call' }
+        });
+        await tx.orderStatusHistory.create({
+          data: {
+            orderId: id,
+            fromStatus: 'CONFIRMED',
+            toStatus: 'READY_TO_SHIP',
+            changedById: agentId,
+            note: 'Automatically queued for shipping after confirmation'
+          }
+        });
+      } else {
+        await tx.orderStatusHistory.create({
+          data: {
+            orderId: id,
+            fromStatus: order.status,
+            toStatus: nextStatus,
+            changedById: agentId,
+            note:
+              input.outcome === 'CANCELLED'
+                ? `Cancelled after call (${input.cancellationReason})`
+                : `Confirmation call logged (${input.outcome})`
+          }
+        });
+      }
     }
 
     return updatedOrder;
   });
+}
+
+/**
+ * Assigns (or unassigns) the confirmation agent responsible for an order.
+ * The candidate agent must be an active member of the same organization —
+ * this is the multi-tenant guard that stops cross-tenant assignment.
+ */
+export async function assignOrderAgent(orderId: string, agentId: string | null) {
+  const organizationId = await getOrganizationId();
+  const order = await prisma.order.findFirst({ where: { id: orderId, organizationId } });
+
+  if (!order) {
+    throw new Error('Order not found');
+  }
+
+  if (agentId) {
+    const membership = await prisma.membership.findFirst({
+      where: { organizationId, userId: agentId, status: 'ACTIVE' }
+    });
+
+    if (!membership) {
+      throw new Error('Selected agent is not an active member of this organization.');
+    }
+  }
+
+  const session = await getSession();
+  const actingUserId = session?.user?.id ?? null;
+
+  return prisma.$transaction(async (tx) => {
+    const updated = await tx.order.update({ where: { id: orderId }, data: { assignedAgentId: agentId } });
+
+    await tx.orderStatusHistory.create({
+      data: {
+        orderId,
+        fromStatus: order.status,
+        toStatus: order.status,
+        changedById: actingUserId,
+        note: agentId ? 'Assigned confirmation agent' : 'Unassigned confirmation agent'
+      }
+    });
+
+    return updated;
+  });
+}
+
+/**
+ * Active members eligible to be assigned as a confirmation agent, scoped to
+ * the current organization (multi-tenant safe).
+ */
+export async function getOrganizationAgents() {
+  const organizationId = await getOrganizationId();
+
+  const memberships = await prisma.membership.findMany({
+    where: {
+      organizationId,
+      status: 'ACTIVE',
+      role: { in: ['OWNER', 'ADMIN', 'CONFIRMATION_AGENT'] }
+    },
+    include: { user: { select: { id: true, name: true } } }
+  });
+
+  return memberships
+    .map((membership) => ({ id: membership.user.id, name: membership.user.name ?? 'Unnamed user' }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export type OrderTimelineEvent =
+  | { type: 'STATUS_CHANGE'; id: string; timestamp: Date; fromStatus: string; toStatus: string; note: string | null; actor: string | null }
+  | {
+      type: 'CALL_ATTEMPT';
+      id: string;
+      timestamp: Date;
+      outcome: string;
+      note: string | null;
+      nextCallAt: Date | null;
+      cancellationReason: string | null;
+      actor: string | null;
+    };
+
+/**
+ * A unified, chronological feed of everything that happened to an order:
+ * status transitions and confirmation-call attempts, merged and sorted by
+ * timestamp (most recent first).
+ */
+export async function getOrderTimeline(orderId: string): Promise<OrderTimelineEvent[]> {
+  const organizationId = await getOrganizationId();
+  const order = await prisma.order.findFirst({ where: { id: orderId, organizationId }, select: { id: true } });
+
+  if (!order) {
+    throw new Error('Order not found');
+  }
+
+  const [statusHistory, callLogs] = await Promise.all([
+    prisma.orderStatusHistory.findMany({
+      where: { orderId },
+      include: { changedBy: { select: { name: true } } },
+      orderBy: { createdAt: 'desc' }
+    }),
+    prisma.orderCallLog.findMany({
+      where: { orderId },
+      include: { agent: { select: { name: true } } },
+      orderBy: { calledAt: 'desc' }
+    })
+  ]);
+
+  const statusEvents: OrderTimelineEvent[] = statusHistory.map((entry) => ({
+    type: 'STATUS_CHANGE',
+    id: entry.id,
+    timestamp: entry.createdAt,
+    fromStatus: entry.fromStatus,
+    toStatus: entry.toStatus,
+    note: entry.note,
+    actor: entry.changedBy?.name ?? null
+  }));
+
+  const callEvents: OrderTimelineEvent[] = callLogs.map((entry) => ({
+    type: 'CALL_ATTEMPT',
+    id: entry.id,
+    timestamp: entry.calledAt,
+    outcome: entry.outcome,
+    note: entry.note,
+    nextCallAt: entry.nextCallAt,
+    cancellationReason: entry.cancellationReason,
+    actor: entry.agent?.name ?? null
+  }));
+
+  return [...statusEvents, ...callEvents].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 }

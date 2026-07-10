@@ -7,7 +7,9 @@ interface StatusDonutChartProps {
 
 const STATUS_COLOR: Record<string, { stroke: string; dot: string; label: string }> = {
   NEW: { stroke: 'stroke-slate-400', dot: 'bg-slate-400', label: 'New' },
+  CALLING: { stroke: 'stroke-purple-500', dot: 'bg-purple-500', label: 'Calling' },
   CONFIRMED: { stroke: 'stroke-blue-500', dot: 'bg-blue-500', label: 'Confirmed' },
+  READY_TO_SHIP: { stroke: 'stroke-teal-500', dot: 'bg-teal-500', label: 'Ready to ship' },
   PACKED: { stroke: 'stroke-indigo-500', dot: 'bg-indigo-500', label: 'Packed' },
   SHIPPED: { stroke: 'stroke-amber-500', dot: 'bg-amber-500', label: 'Shipped' },
   DELIVERED: { stroke: 'stroke-emerald-500', dot: 'bg-emerald-500', label: 'Delivered' },

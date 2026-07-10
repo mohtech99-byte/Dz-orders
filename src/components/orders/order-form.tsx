@@ -176,7 +176,9 @@ export function OrderForm({ initialValues, orderId, customers, products, wilayas
           <Label htmlFor="status">Status</Label>
           <select id="status" name="status" defaultValue={initialValues?.status ?? 'NEW'} className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950">
             <option value="NEW">New</option>
+            <option value="CALLING">Calling</option>
             <option value="CONFIRMED">Confirmed</option>
+            <option value="READY_TO_SHIP">Ready to ship</option>
             <option value="PACKED">Packed</option>
             <option value="SHIPPED">Shipped</option>
             <option value="DELIVERED">Delivered</option>

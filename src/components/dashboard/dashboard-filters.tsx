@@ -59,7 +59,9 @@ export function DashboardFilters({ range, dateFrom, dateTo, status, source, paym
         >
           <option value="ALL">All statuses</option>
           <option value="NEW">New</option>
+          <option value="CALLING">Calling</option>
           <option value="CONFIRMED">Confirmed</option>
+          <option value="READY_TO_SHIP">Ready to ship</option>
           <option value="PACKED">Packed</option>
           <option value="SHIPPED">Shipped</option>
           <option value="DELIVERED">Delivered</option>

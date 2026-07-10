@@ -17,7 +17,7 @@ export const orderSchema = z.object({
   discount: z.coerce.number().int().nonnegative('Discount must be zero or more'),
   paymentMethod: z.enum(['COD', 'PREPAID']).default('COD'),
   notes: z.string().trim().max(500).optional().or(z.literal('')),
-  status: z.enum(['NEW', 'CONFIRMED', 'PACKED', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'RETURNED']).default('NEW'),
+  status: z.enum(['NEW', 'CALLING', 'CONFIRMED', 'READY_TO_SHIP', 'PACKED', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'RETURNED']).default('NEW'),
   source: z.enum(['FACEBOOK', 'INSTAGRAM', 'TIKTOK', 'WHATSAPP', 'MANUAL', 'PUBLIC_FORM']).default('MANUAL'),
   items: z.array(orderItemSchema).min(1, 'Add at least one product to the order')
 });

@@ -48,6 +48,7 @@ model User {
   notifications Notification[]
   auditLogs     AuditLog[]
   confirmedOrders Order[]
+  assignedOrders  Order[]              @relation("OrderAssignedAgent")
   statusHistory  OrderStatusHistory[]
   orderCallLogs  OrderCallLog[]
 }
@@ -253,6 +254,11 @@ model Order {
   confirmedBy          User?         @relation(fields: [confirmedById], references: [id])
   confirmedById        String?
   confirmedAt          DateTime?
+  nextCallAt           DateTime?
+  cancellationReason   CancellationReason?
+  cancellationNote     String?
+  assignedAgent        User?         @relation("OrderAssignedAgent", fields: [assignedAgentId], references: [id])
+  assignedAgentId      String?
   items                OrderItem[]
   statusHistory        OrderStatusHistory[]
   callLogs             OrderCallLog[]
@@ -264,6 +270,8 @@ model Order {
   @@index([organizationId, createdAt])
   @@index([organizationId, wilayaId, status])
   @@index([organizationId, paymentMethod])
+  @@index([organizationId, nextCallAt])
+  @@index([organizationId, assignedAgentId])
 }
 
 enum DeliveryType {
@@ -273,7 +281,9 @@ enum DeliveryType {
 
 enum OrderStatus {
   NEW
+  CALLING
   CONFIRMED
+  READY_TO_SHIP
   PACKED
   SHIPPED
   DELIVERED
@@ -323,21 +333,41 @@ model OrderStatusHistory {
 }
 
 model OrderCallLog {
-  id        String      @id @default(uuid())
-  order     Order       @relation(fields: [orderId], references: [id])
-  orderId   String
-  agent     User?       @relation(fields: [agentId], references: [id])
-  agentId   String?
-  outcome   CallOutcome
-  note      String?
-  calledAt  DateTime    @default(now())
+  id                 String              @id @default(uuid())
+  order              Order               @relation(fields: [orderId], references: [id])
+  orderId            String
+  agent              User?               @relation(fields: [agentId], references: [id])
+  agentId            String?
+  outcome            CallOutcome
+  note               String?
+  nextCallAt         DateTime?
+  cancellationReason CancellationReason?
+  calledAt           DateTime            @default(now())
+
+  @@index([orderId, calledAt])
 }
 
 enum CallOutcome {
   NO_ANSWER
+  BUSY
+  PHONE_OFF
+  WRONG_NUMBER
+  REFUSED
+  DUPLICATE
+  RESCHEDULED
+  CALLBACK_REQUESTED
   CONFIRMED
   CANCELLED
-  RESCHEDULED
+}
+
+enum CancellationReason {
+  CUSTOMER_REFUSED
+  WRONG_NUMBER
+  DUPLICATE_ORDER
+  OUT_OF_STOCK
+  FRAUD_SUSPECTED
+  CHANGED_MIND
+  OTHER
 }
 
 model DeliveryPricing {
