@@ -18,8 +18,16 @@ interface CustomerFormProps {
 export function CustomerForm({ initialValues, customerId, wilayas, communes }: CustomerFormProps) {
   const router = useRouter();
   const [selectedWilaya, setSelectedWilaya] = useState(initialValues?.wilayaId?.toString() ?? '');
+  const [selectedCommune, setSelectedCommune] = useState(initialValues?.communeId?.toString() ?? '');
 
   const availableCommunes = communes.filter((commune) => commune.wilayaId === Number(selectedWilaya));
+
+  const handleWilayaChange = (value: string) => {
+    setSelectedWilaya(value);
+    // Reset the commune whenever the wilaya changes so a stale, no-longer-valid
+    // commune from a different wilaya can't linger in the selection.
+    setSelectedCommune('');
+  };
 
   return (
     <form
@@ -49,7 +57,7 @@ export function CustomerForm({ initialValues, customerId, wilayas, communes }: C
             id="wilayaId"
             name="wilayaId"
             value={selectedWilaya}
-            onChange={(event) => setSelectedWilaya(event.target.value)}
+            onChange={(event) => handleWilayaChange(event.target.value)}
             className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
             required
           >
@@ -66,7 +74,8 @@ export function CustomerForm({ initialValues, customerId, wilayas, communes }: C
           <select
             id="communeId"
             name="communeId"
-            value={initialValues?.communeId?.toString() ?? ''}
+            value={selectedCommune}
+            onChange={(event) => setSelectedCommune(event.target.value)}
             className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
             required
             disabled={!selectedWilaya}
