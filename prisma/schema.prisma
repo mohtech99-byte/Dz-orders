@@ -5,7 +5,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+   directUrl = env("DIRECT_URL")
 }
 
 model Organization {
@@ -49,6 +49,7 @@ model User {
   auditLogs     AuditLog[]
   confirmedOrders Order[]
   assignedOrders  Order[]              @relation("OrderAssignedAgent")
+  blacklistedCustomers Customer[]      @relation("CustomerBlacklistedBy")
   statusHistory  OrderStatusHistory[]
   orderCallLogs  OrderCallLog[]
 }
@@ -214,6 +215,10 @@ model Customer {
   address        String
   notes          String?
   isBlacklisted  Boolean   @default(false)
+  blacklistedAt  DateTime?
+  blacklistedBy  User?     @relation("CustomerBlacklistedBy", fields: [blacklistedById], references: [id])
+  blacklistedById String?
+  blacklistReason String?
   ordersCount    Int       @default(0)
   orders         Order[]
   createdAt      DateTime  @default(now())

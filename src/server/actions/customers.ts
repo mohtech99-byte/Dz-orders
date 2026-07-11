@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { customerSchema } from '@/lib/validations/customers';
-import { createCustomer, deleteCustomer, updateCustomer } from '@/server/services/customers';
+import { createCustomer, deleteCustomer, toggleCustomerBlacklist, updateCustomer } from '@/server/services/customers';
 
 export type CustomerFormState = {
   error?: string;
@@ -75,4 +75,15 @@ export async function deleteCustomerAction(id: string) {
   await deleteCustomer(id);
   revalidatePath('/customers');
   redirect('/customers');
+}
+
+export async function toggleCustomerBlacklistAction(id: string, formData: FormData) {
+  const isCurrentlyBlacklisted = formData.get('isBlacklisted') === 'true';
+  const reason = formData.get('reason')?.toString();
+
+  await toggleCustomerBlacklist(id, { blacklisted: !isCurrentlyBlacklisted, reason });
+
+  revalidatePath('/customers');
+  revalidatePath(`/customers/${id}`);
+  redirect(`/customers/${id}`);
 }

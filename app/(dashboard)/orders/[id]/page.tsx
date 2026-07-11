@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { ShieldAlert } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
 import { ConfirmationPanel } from '@/components/orders/confirmation-panel';
@@ -34,6 +35,19 @@ export default async function OrderDetailPage({ params }: { params: { id: string
           </form>
         </div>
       </div>
+
+      {order.customer?.isBlacklisted ? (
+        <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200">
+          <ShieldAlert className="h-5 w-5 shrink-0" />
+          <div>
+            <p className="font-medium">This customer is blacklisted</p>
+            {order.customer.blacklistReason ? <p className="mt-0.5 opacity-90">Reason: {order.customer.blacklistReason}</p> : null}
+            <Link href={`/customers/${order.customer.id}`} className="mt-1 inline-block text-xs underline opacity-90">
+              View customer profile
+            </Link>
+          </div>
+        </div>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">

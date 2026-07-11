@@ -462,18 +462,39 @@ async function getDashboardRecentOrdersImpl(organizationId: string, params: Dash
 async function getDashboardOperationalAlertsImpl(organizationId: string, params: DashboardParams): Promise<DashboardAlertItem[]> {
   const range = buildDateRange(params);
 
-  const [awaitingConfirmation, pendingCount, returnedCount, deliveredCount, blacklistedCount, followUpsDue] = await Promise.all([
-    prisma.order.count({ where: { organizationId, status: { in: AWAITING_CONFIRMATION_STATUSES }, createdAt: { gte: range.from, lte: range.to } } }),
-    prisma.order.count({ where: { organizationId, status: { in: PENDING_STATUSES }, createdAt: { gte: range.from, lte: range.to } } }),
-    prisma.order.count({ where: { organizationId, status: 'RETURNED', createdAt: { gte: range.from, lte: range.to } } }),
-    prisma.order.count({ where: { organizationId, status: 'DELIVERED', createdAt: { gte: range.from, lte: range.to } } }),
-    prisma.customer.count({ where: { organizationId, deletedAt: null, isBlacklisted: true } }),
-    prisma.order.count({
-      where: { organizationId, status: { in: AWAITING_CONFIRMATION_STATUSES }, nextCallAt: { lte: new Date() } }
-    })
-  ]);
+  const [awaitingConfirmation, pendingCount, returnedCount, deliveredCount, blacklistedCount, followUpsDue, repeatOffenderRows] =
+    await Promise.all([
+      prisma.order.count({ where: { organizationId, status: { in: AWAITING_CONFIRMATION_STATUSES }, createdAt: { gte: range.from, lte: range.to } } }),
+      prisma.order.count({ where: { organizationId, status: { in: PENDING_STATUSES }, createdAt: { gte: range.from, lte: range.to } } }),
+      prisma.order.count({ where: { organizationId, status: 'RETURNED', createdAt: { gte: range.from, lte: range.to } } }),
+      prisma.order.count({ where: { organizationId, status: 'DELIVERED', createdAt: { gte: range.from, lte: range.to } } }),
+      prisma.customer.count({ where: { organizationId, deletedAt: null, isBlacklisted: true } }),
+      prisma.order.count({
+        where: { organizationId, status: { in: AWAITING_CONFIRMATION_STATUSES }, nextCallAt: { lte: new Date() } }
+      }),
+      prisma.$queryRaw<Array<{ id: string }>>`
+        SELECT c."id" AS "id"
+        FROM "Customer" c
+        INNER JOIN "Order" o ON o."customerId" = c."id"
+        WHERE c."organizationId" = ${organizationId}
+          AND c."deletedAt" IS NULL
+          AND c."isBlacklisted" = false
+        GROUP BY c."id"
+        HAVING COUNT(*) FILTER (WHERE o."status" IN ('CANCELLED', 'RETURNED')) >= 2
+      `
+    ]);
+
+  const repeatOffenderCount = repeatOffenderRows.length;
 
   const alerts: DashboardAlertItem[] = [];
+
+  if (repeatOffenderCount > 0) {
+    alerts.push({
+      title: `${repeatOffenderCount} customers with risky order history`,
+      description: 'Repeated cancellations or returns, but not yet blacklisted — worth a review.',
+      tone: 'warning'
+    });
+  }
 
   if (followUpsDue > 0) {
     alerts.push({
