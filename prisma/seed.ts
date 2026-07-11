@@ -16,7 +16,7 @@ async function main() {
   ];
 
   const deliveryCompanies = [
-    { name: 'Yalidine', logoUrl: null, apiSupported: false },
+    { name: 'Yalidine', logoUrl: null, apiSupported: true },
     { name: 'ZR Express', logoUrl: null, apiSupported: false },
     { name: 'Maystro', logoUrl: null, apiSupported: false },
     { name: 'NOEST', logoUrl: null, apiSupported: false },

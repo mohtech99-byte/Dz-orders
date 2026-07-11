@@ -5,7 +5,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-   directUrl = env("DIRECT_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Organization {
@@ -15,7 +15,9 @@ model Organization {
   logoUrl       String?
   phone         String?
   wilayaId      Int?
+  wilaya        Wilaya?     @relation(fields: [wilayaId], references: [id])
   communeId     Int?
+  commune       Commune?    @relation(fields: [communeId], references: [id])
   planId        String?
   trialEndsAt   DateTime?
   createdAt     DateTime    @default(now())
@@ -27,6 +29,7 @@ model Organization {
   categories    Category[]
   orders        Order[]
   deliveryPricings DeliveryPricing[]
+  deliveryCredentials DeliveryCompanyCredential[]
   publicForms   PublicOrderForm[]
   subscriptions Subscription[]
   notifications Notification[]
@@ -93,6 +96,7 @@ model Wilaya {
   customers Customer[]
   orders    Order[]
   deliveryPricings DeliveryPricing[]
+  organizations Organization[]
 }
 
 model Commune {
@@ -103,6 +107,7 @@ model Commune {
   nameAr   String
   customers Customer[]
   orders    Order[]
+  organizations Organization[]
 
   @@index([wilayaId])
 }
@@ -114,6 +119,24 @@ model DeliveryCompany {
   apiSupported Boolean @default(false)
   orders       Order[]
   deliveryPricings DeliveryPricing[]
+  credentials  DeliveryCompanyCredential[]
+}
+
+model DeliveryCompanyCredential {
+  id                String          @id @default(uuid())
+  organization      Organization    @relation(fields: [organizationId], references: [id])
+  organizationId    String
+  deliveryCompany   DeliveryCompany @relation(fields: [deliveryCompanyId], references: [id])
+  deliveryCompanyId String
+  apiId             String?
+  apiToken          String?
+  isActive          Boolean         @default(true)
+  lastTestedAt      DateTime?
+  lastTestOk        Boolean?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@unique([organizationId, deliveryCompanyId])
 }
 
 model Account {
@@ -247,6 +270,8 @@ model Order {
   deliveryCompany      DeliveryCompany? @relation(fields: [deliveryCompanyId], references: [id])
   deliveryCompanyId    String?
   deliveryType         DeliveryType
+  trackingNumber       String?
+  shipmentCreatedAt    DateTime?
   deliveryCost         Int
   subtotal             Int
   discount             Int
