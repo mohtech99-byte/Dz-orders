@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { EmptyState } from '@/components/shared/empty-state';
+import { OrderStatusBadge } from '@/components/ui/badge';
 import type { DashboardRecentOrderItem } from '@/server/services/dashboard';
 
 interface RecentOrdersListProps {
@@ -8,13 +9,13 @@ interface RecentOrdersListProps {
 
 export function RecentOrdersList({ orders }: RecentOrdersListProps) {
   return (
-    <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+    <div className="space-y-4 rounded-2xl border border-border bg-surface p-6 shadow-card">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Recent orders</h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400">The latest activity for the selected period.</p>
+          <h3 className="text-lg font-semibold text-foreground">Recent orders</h3>
+          <p className="text-sm text-muted-foreground">The latest activity for the selected period.</p>
         </div>
-        <Link href="/orders" className="text-sm font-medium text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
+        <Link href="/orders" className="text-sm font-medium text-primary hover:text-primary-hover">
           View all
         </Link>
       </div>
@@ -22,32 +23,30 @@ export function RecentOrdersList({ orders }: RecentOrdersListProps) {
       {orders.length === 0 ? (
         <EmptyState title="No orders yet" description="Create your first order to see it show up here." />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
-          <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
-            <thead className="bg-slate-50 dark:bg-slate-900">
+        <div className="overflow-hidden rounded-xl border border-border">
+          <table className="min-w-full divide-y divide-border text-sm">
+            <thead className="bg-surface-hover">
               <tr>
-                <th className="px-4 py-3 text-left font-medium">Order</th>
-                <th className="px-4 py-3 text-left font-medium">Customer</th>
-                <th className="px-4 py-3 text-left font-medium">Status</th>
-                <th className="px-4 py-3 text-left font-medium">Total</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Order</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Customer</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Total</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-950">
+            <tbody className="divide-y divide-border">
               {orders.map((order) => (
-                <tr key={order.id}>
+                <tr key={order.id} className="transition-colors hover:bg-surface-hover">
                   <td className="px-4 py-3">
-                    <Link href={`/orders/${order.id}`} className="font-medium text-slate-900 hover:underline dark:text-slate-100">
+                    <Link href={`/orders/${order.id}`} className="font-data font-medium text-foreground hover:text-primary">
                       {order.orderNumber}
                     </Link>
-                    <div className="text-xs text-slate-500">{new Date(order.createdAt).toLocaleDateString()}</div>
+                    <div className="text-xs text-muted-foreground">{new Date(order.createdAt).toLocaleDateString()}</div>
                   </td>
-                  <td className="px-4 py-3">{order.customerName}</td>
+                  <td className="px-4 py-3 text-foreground">{order.customerName}</td>
                   <td className="px-4 py-3">
-                    <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                      {order.status}
-                    </span>
+                    <OrderStatusBadge status={order.status} />
                   </td>
-                  <td className="px-4 py-3">{order.total.toLocaleString()} DZD</td>
+                  <td className="px-4 py-3 tabular-nums text-foreground">{order.total.toLocaleString()} DZD</td>
                 </tr>
               ))}
             </tbody>

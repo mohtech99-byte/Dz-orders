@@ -2,18 +2,129 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ---------------------------------------------------------------------------
+   Design tokens — semantic colors that adapt between light and dark.
+   Primary: deep teal (#0F766E) — trust, confirmation, growth.
+   Accent:  warm amber (#D97706) — commerce energy, pairs with teal.
+   Neutral base: stone (warmer than slate) for a less sterile, more
+   deliberate feel across surfaces, borders, and text.
+--------------------------------------------------------------------------- */
 :root {
   color-scheme: light;
+
+  --background: 250 250 249; /* stone-50 */
+  --surface: 255 255 255;
+  --surface-hover: 250 250 249; /* stone-50 */
+  --border: 231 229 228; /* stone-200 */
+  --border-strong: 214 211 209; /* stone-300 */
+  --foreground: 28 25 23; /* stone-900 */
+  --muted-foreground: 120 113 108; /* stone-500 */
+
+  --primary: 15 118 110; /* teal-700 */
+  --primary-hover: 17 94 89; /* teal-800 */
+  --primary-foreground: 255 255 255;
+
+  --accent: 217 119 6; /* amber-600 */
+  --accent-foreground: 255 255 255;
+
+  --success: 5 150 105; /* emerald-600 */
+  --success-bg: 236 253 245; /* emerald-50 */
+  --warning: 217 119 6; /* amber-600 */
+  --warning-bg: 255 251 235; /* amber-50 */
+  --danger: 225 29 72; /* rose-600 */
+  --danger-bg: 255 241 242; /* rose-50 */
+  --info: 37 99 235; /* blue-600 */
+  --info-bg: 239 246 255; /* blue-50 */
+
+  --focus-ring: 15 118 110; /* teal-700 */
 }
 
 html.dark {
   color-scheme: dark;
+
+  --background: 12 10 9; /* stone-950 */
+  --surface: 28 25 23; /* stone-900 */
+  --surface-hover: 41 37 36; /* stone-800 */
+  --border: 41 37 36; /* stone-800 */
+  --border-strong: 68 64 60; /* stone-700 */
+  --foreground: 245 245 244; /* stone-100 */
+  --muted-foreground: 168 162 158; /* stone-400 */
+
+  --primary: 45 212 191; /* teal-400 */
+  --primary-hover: 94 234 212; /* teal-300 */
+  --primary-foreground: 4 47 46; /* teal-950 */
+
+  --accent: 251 191 36; /* amber-400 */
+  --accent-foreground: 69 26 3; /* amber-950 */
+
+  --success: 52 211 153; /* emerald-400 */
+  --success-bg: 6 78 59; /* emerald-900, used at low opacity via bg-success/10 */
+  --warning: 251 191 36; /* amber-400 */
+  --warning-bg: 69 39 3;
+  --danger: 251 113 133; /* rose-400 */
+  --danger-bg: 76 5 25;
+  --info: 96 165 250; /* blue-400 */
+  --info-bg: 23 37 84;
+
+  --focus-ring: 45 212 191;
+}
+
+* {
+  border-color: rgb(var(--border));
 }
 
 body {
-  @apply bg-slate-50 text-slate-900;
+  background-color: rgb(var(--background));
+  color: rgb(var(--foreground));
 }
 
-html.dark body {
-  @apply bg-slate-950 text-slate-100;
+/* Numeric data (prices, counts, order totals) reads better with tabular
+   figures so digits align in columns — a small but real "data product"
+   signature detail. */
+.tabular-nums,
+table {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Order numbers, tracking codes, and phone numbers get the mono face so
+   they read as precise, copyable data rather than prose. */
+.font-data {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  letter-spacing: -0.01em;
+}
+
+::selection {
+  background-color: rgb(var(--primary) / 0.25);
+}
+
+/* Consistent, visible focus ring everywhere, keyboard-navigation friendly. */
+:focus-visible {
+  outline: 2px solid rgb(var(--focus-ring));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Slim, quiet scrollbars that still work with dark mode. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgb(var(--border-strong));
+  border-radius: 9999px;
+  border: 2px solid rgb(var(--background));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

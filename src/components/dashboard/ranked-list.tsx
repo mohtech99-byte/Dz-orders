@@ -23,15 +23,15 @@ export function RankedList({
   items,
   emptyTitle,
   emptyDescription,
-  barColorClassName = 'bg-slate-900 dark:bg-slate-100'
+  barColorClassName = 'bg-primary'
 }: RankedListProps) {
   const maxValue = Math.max(...items.map((item) => item.value), 1);
 
   return (
-    <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+    <div className="space-y-4 rounded-2xl border border-border bg-surface p-6 shadow-card">
       <div>
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
-        {description ? <p className="text-sm text-slate-600 dark:text-slate-400">{description}</p> : null}
+        <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+        {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
       </div>
 
       {items.length === 0 ? (
@@ -41,13 +41,13 @@ export function RankedList({
           {items.map((item, index) => (
             <li key={item.key} className="space-y-1">
               <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-slate-900 dark:text-slate-100">
+                <span className="font-medium text-foreground">
                   {index + 1}. {item.primaryLabel}
                 </span>
-                <span className="text-slate-600 dark:text-slate-400">{item.valueLabel}</span>
+                <span className="text-muted-foreground">{item.valueLabel}</span>
               </div>
-              {item.secondaryLabel ? <p className="text-xs text-slate-500 dark:text-slate-400">{item.secondaryLabel}</p> : null}
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+              {item.secondaryLabel ? <p className="text-xs text-muted-foreground">{item.secondaryLabel}</p> : null}
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-hover">
                 <div
                   className={`h-full rounded-full ${barColorClassName}`}
                   style={{ width: `${Math.max((item.value / maxValue) * 100, 4)}%` }}

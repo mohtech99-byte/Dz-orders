@@ -1,7 +1,8 @@
-'use client';
-
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Eye, Pencil, Users } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { EmptyState } from '@/components/shared/empty-state';
+import { Pagination } from '@/components/shared/pagination';
 import type { Customer, Commune, Wilaya } from '@prisma/client';
 
 interface CustomerTableProps {
@@ -12,60 +13,80 @@ interface CustomerTableProps {
 }
 
 export function CustomerTable({ customers, totalPages, currentPage, basePath }: CustomerTableProps) {
+  if (customers.length === 0) {
+    return (
+      <EmptyState
+        icon={Users}
+        title="No customers yet"
+        description="Customers are created automatically from orders, or you can add one manually."
+      />
+    );
+  }
+
   return (
     <div className="space-y-4">
-      <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800">
-        <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
-          <thead className="bg-slate-50 dark:bg-slate-900">
-            <tr>
-              <th className="px-4 py-3 text-left font-medium">Name</th>
-              <th className="px-4 py-3 text-left font-medium">Phone</th>
-              <th className="px-4 py-3 text-left font-medium">Location</th>
-              <th className="px-4 py-3 text-left font-medium">Status</th>
-              <th className="px-4 py-3 text-left font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-950">
-            {customers.map((customer) => (
-              <tr key={customer.id}>
-                <td className="px-4 py-3">
-                  <div className="font-medium">{customer.fullName}</div>
-                  <div className="text-xs text-slate-500">{customer.address}</div>
-                </td>
-                <td className="px-4 py-3">{customer.phone}</td>
-                <td className="px-4 py-3">{customer.wilaya.nameFr} / {customer.commune.nameFr}</td>
-                <td className="px-4 py-3">
-                  {customer.isBlacklisted ? <span className="rounded-full bg-rose-100 px-2 py-1 text-xs text-rose-700">Blacklisted</span> : <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs text-emerald-700">Active</span>}
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <Link href={`${basePath}/${customer.id}`} className="text-sm font-medium text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
-                      View
-                    </Link>
-                    <Link href={`${basePath}/${customer.id}/edit`} className="text-sm font-medium text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
-                      Edit
-                    </Link>
-                  </div>
-                </td>
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-card">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-border text-sm">
+            <thead className="sticky top-0 z-10 bg-surface-hover/80 backdrop-blur">
+              <tr>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Name</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Phone</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Location</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {customers.map((customer) => (
+                <tr key={customer.id} className="transition-colors hover:bg-surface-hover">
+                  <td className="px-4 py-3">
+                    <Link href={`${basePath}/${customer.id}`} className="font-medium text-foreground hover:text-primary">
+                      {customer.fullName}
+                    </Link>
+                    <div className="max-w-xs truncate text-xs text-muted-foreground">{customer.address}</div>
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 font-data text-foreground">{customer.phone}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {customer.wilaya.nameFr} / {customer.commune.nameFr}
+                  </td>
+                  <td className="px-4 py-3">
+                    {customer.isBlacklisted ? (
+                      <Badge tone="danger" dot>
+                        Blacklisted
+                      </Badge>
+                    ) : (
+                      <Badge tone="success" dot>
+                        Active
+                      </Badge>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-1">
+                      <Link
+                        href={`${basePath}/${customer.id}`}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+                        aria-label="View customer"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                      <Link
+                        href={`${basePath}/${customer.id}/edit`}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+                        aria-label="Edit customer"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Link>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {totalPages > 1 ? (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-slate-600 dark:text-slate-400">Page {currentPage} of {totalPages}</div>
-          <div className="flex gap-2">
-            <Button asChild className="bg-white text-slate-900 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800">
-              <Link href={`${basePath}?page=${Math.max(1, currentPage - 1)}`}>Previous</Link>
-            </Button>
-            <Button asChild className="bg-white text-slate-900 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800">
-              <Link href={`${basePath}?page=${Math.min(totalPages, currentPage + 1)}`}>Next</Link>
-            </Button>
-          </div>
-        </div>
-      ) : null}
+      <Pagination totalPages={totalPages} currentPage={currentPage} basePath={basePath} />
     </div>
   );
 }

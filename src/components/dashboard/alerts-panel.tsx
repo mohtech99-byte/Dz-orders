@@ -16,10 +16,10 @@ const TONE_STYLES: Record<DashboardAlertItem['tone'], { icon: typeof Info; class
 
 export function AlertsPanel({ alerts }: AlertsPanelProps) {
   return (
-    <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+    <div className="space-y-4 rounded-2xl border border-border bg-surface p-6 shadow-card">
       <div>
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Operational alerts</h3>
-        <p className="text-sm text-slate-600 dark:text-slate-400">Quick signals worth acting on today.</p>
+        <h3 className="text-lg font-semibold text-foreground">Operational alerts</h3>
+        <p className="text-sm text-muted-foreground">Quick signals worth acting on today.</p>
       </div>
 
       <ul className="space-y-3">

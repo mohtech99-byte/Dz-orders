@@ -33,20 +33,20 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="mx-auto max-w-md rounded-3xl border border-slate-200 bg-white p-10 shadow-lg dark:border-slate-800 dark:bg-slate-950">
-      <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Forgot password</h1>
-      <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">We’ll send a secure reset link to your inbox.</p>
+    <div className="mx-auto w-full max-w-md rounded-3xl border border-border bg-surface p-10 shadow-elevated">
+      <h1 className="text-2xl font-semibold tracking-tight text-foreground">Forgot password</h1>
+      <p className="mt-2 text-sm text-muted-foreground">We’ll send a secure reset link to your inbox.</p>
       <form onSubmit={handleSubmit} className="mt-6 space-y-5">
         <div>
           <Label htmlFor="email">Email</Label>
           <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </div>
-        {error ? <p className="text-sm text-rose-600">{error}</p> : null}
+        {error ? <p className="text-sm text-danger">{error}</p> : null}
         {message ? <p className="text-sm text-emerald-600">{message}</p> : null}
         <Button type="submit">Send reset link</Button>
       </form>
-      <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">
-        <Link href="/login" className="font-medium text-slate-900 dark:text-slate-100">
+      <p className="mt-4 text-sm text-muted-foreground">
+        <Link href="/login" className="font-medium text-foreground hover:text-primary">
           Back to sign in
         </Link>
       </p>

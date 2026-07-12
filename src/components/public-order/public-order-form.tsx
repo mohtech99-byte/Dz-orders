@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Minus, Plus, ImageOff, ShoppingBag, MapPin } from 'lucide-react';
 import { submitPublicOrderAction } from '@/server/actions/public-order-form';
 import type { Commune, Product, Wilaya } from '@prisma/client';
 
@@ -13,187 +13,225 @@ interface PublicOrderFormProps {
   themeColor: string | null;
 }
 
-interface ItemRow {
-  key: number;
-  productId: string;
-  quantity: number;
-}
-
-let rowKeySeed = 0;
-function nextRowKey() {
-  rowKeySeed += 1;
-  return rowKeySeed;
-}
-
 export function PublicOrderForm({ formSlug, products, wilayas, communes, themeColor }: PublicOrderFormProps) {
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [selectedWilaya, setSelectedWilaya] = useState('');
-  const [items, setItems] = useState<ItemRow[]>([{ key: nextRowKey(), productId: products[0]?.id ?? '', quantity: 1 }]);
+
+  const accent = themeColor || 'rgb(var(--primary))';
 
   const filteredCommunes = useMemo(
     () => communes.filter((commune) => String(commune.wilayaId) === selectedWilaya),
     [communes, selectedWilaya]
   );
 
-  const productMap = useMemo(() => new Map(products.map((product) => [product.id, product])), [products]);
+  const selectedItems = useMemo(
+    () =>
+      Object.entries(quantities)
+        .filter(([, qty]) => qty > 0)
+        .map(([productId, qty]) => ({ product: products.find((p) => p.id === productId)!, quantity: qty }))
+        .filter((item) => item.product),
+    [quantities, products]
+  );
 
-  const estimatedTotal = items.reduce((sum, item) => {
-    const product = productMap.get(item.productId);
-    return sum + (product?.price ?? 0) * item.quantity;
-  }, 0);
+  const total = selectedItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const hasSelection = selectedItems.length > 0;
 
-  const accent = themeColor || '#0f172a';
+  const setQuantity = (productId: string, quantity: number) => {
+    setQuantities((prev) => ({ ...prev, [productId]: Math.max(0, quantity) }));
+  };
 
   return (
-    <form action={submitPublicOrderAction.bind(null, formSlug)} className="space-y-5">
+    <form action={submitPublicOrderAction.bind(null, formSlug)} className="space-y-8">
       {/* Honeypot — real visitors never see or fill this */}
       <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 opacity-0" />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="space-y-1 text-sm font-medium text-slate-700 dark:text-slate-300">
-          Full name
-          <input
-            name="fullName"
-            required
-            placeholder="Your name"
-            className="flex h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-slate-700 dark:bg-slate-950"
-          />
-        </label>
-        <label className="space-y-1 text-sm font-medium text-slate-700 dark:text-slate-300">
-          Phone number
-          <input
-            name="phone"
-            type="tel"
-            required
-            placeholder="05XX XX XX XX"
-            className="flex h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-slate-700 dark:bg-slate-950"
-          />
-        </label>
-        <label className="space-y-1 text-sm font-medium text-slate-700 dark:text-slate-300">
-          Wilaya
-          <select
-            name="wilayaId"
-            required
-            value={selectedWilaya}
-            onChange={(event) => setSelectedWilaya(event.target.value)}
-            className="flex h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-slate-700 dark:bg-slate-950"
+      {/* Step 1 — product picker */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <span
+            className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white"
+            style={{ backgroundColor: accent }}
           >
-            <option value="">Select wilaya</option>
-            {wilayas.map((wilaya) => (
-              <option key={wilaya.id} value={wilaya.id}>
-                {wilaya.nameFr}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="space-y-1 text-sm font-medium text-slate-700 dark:text-slate-300">
-          Commune
-          <select
-            name="communeId"
-            required
-            disabled={!selectedWilaya}
-            className="flex h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950"
+            1
+          </span>
+          <h2 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+            <ShoppingBag className="h-4 w-4" /> Choose your products
+          </h2>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          {products.map((product) => {
+            const quantity = quantities[product.id] ?? 0;
+            const imageUrl = product.imageUrls[0];
+
+            return (
+              <div
+                key={product.id}
+                className={`flex gap-3 rounded-xl border p-3 transition-colors ${
+                  quantity > 0 ? 'border-primary bg-primary/5' : 'border-border bg-surface'
+                }`}
+              >
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface-hover">
+                  {imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={imageUrl} alt={product.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <ImageOff className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </div>
+
+                <div className="flex flex-1 flex-col justify-between">
+                  <div>
+                    <p className="text-sm font-medium leading-tight text-foreground">{product.name}</p>
+                    <p className="tabular-nums text-sm text-muted-foreground">{product.price.toLocaleString()} DZD</p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setQuantity(product.id, quantity - 1)}
+                      disabled={quantity === 0}
+                      className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-surface-hover disabled:opacity-40"
+                      aria-label={`Decrease ${product.name} quantity`}
+                    >
+                      <Minus className="h-3.5 w-3.5" />
+                    </button>
+                    <span className="w-6 text-center text-sm tabular-nums text-foreground">{quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => setQuantity(product.id, quantity + 1)}
+                      className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-surface-hover"
+                      aria-label={`Increase ${product.name} quantity`}
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {quantity > 0 ? (
+                  <>
+                    <input type="hidden" name="itemProductId" value={product.id} />
+                    <input type="hidden" name="itemQuantity" value={quantity} />
+                  </>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+
+        {hasSelection ? (
+          <div className="flex items-center justify-between rounded-xl border border-border bg-surface-hover px-4 py-3 text-sm">
+            <span className="text-muted-foreground">
+              {selectedItems.reduce((sum, item) => sum + item.quantity, 0)} item(s) selected
+            </span>
+            <span className="tabular-nums font-semibold text-foreground">{total.toLocaleString()} DZD</span>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">Select at least one product to continue.</p>
+        )}
+      </section>
+
+      {/* Step 2 — customer details */}
+      <section className={`space-y-4 transition-opacity ${hasSelection ? '' : 'pointer-events-none opacity-40'}`}>
+        <div className="flex items-center gap-2">
+          <span
+            className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white"
+            style={{ backgroundColor: accent }}
           >
-            <option value="">Select commune</option>
-            {filteredCommunes.map((commune) => (
-              <option key={commune.id} value={commune.id}>
-                {commune.nameFr}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+            2
+          </span>
+          <h2 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+            <MapPin className="h-4 w-4" /> Your delivery details
+          </h2>
+        </div>
 
-      <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-slate-300">
-        Delivery address
-        <textarea
-          name="address"
-          required
-          rows={2}
-          placeholder="Street, building, landmark..."
-          className="flex min-h-16 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
-        />
-      </label>
-
-      <div className="space-y-3">
-        <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Products</p>
-        {items.map((item, index) => (
-          <div key={item.key} className="flex items-center gap-2">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="space-y-1 text-sm font-medium text-foreground">
+            Full name
+            <input
+              name="fullName"
+              required={hasSelection}
+              placeholder="Your name"
+              className="flex h-11 w-full rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            />
+          </label>
+          <label className="space-y-1 text-sm font-medium text-foreground">
+            Phone number
+            <input
+              name="phone"
+              type="tel"
+              required={hasSelection}
+              placeholder="05XX XX XX XX"
+              className="flex h-11 w-full rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            />
+          </label>
+          <label className="space-y-1 text-sm font-medium text-foreground">
+            Wilaya
             <select
-              name="itemProductId"
-              required
-              value={item.productId}
-              onChange={(event) =>
-                setItems((prev) => prev.map((row) => (row.key === item.key ? { ...row, productId: event.target.value } : row)))
-              }
-              className="flex h-11 flex-1 rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-slate-700 dark:bg-slate-950"
+              name="wilayaId"
+              required={hasSelection}
+              value={selectedWilaya}
+              onChange={(event) => setSelectedWilaya(event.target.value)}
+              className="flex h-11 w-full rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
-              {products.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.name} — {product.price.toLocaleString()} DZD
+              <option value="">Select wilaya</option>
+              {wilayas.map((wilaya) => (
+                <option key={wilaya.id} value={wilaya.id}>
+                  {wilaya.nameFr}
                 </option>
               ))}
             </select>
-            <input
-              type="number"
-              name="itemQuantity"
-              min={1}
-              max={50}
-              required
-              value={item.quantity}
-              onChange={(event) =>
-                setItems((prev) =>
-                  prev.map((row) => (row.key === item.key ? { ...row, quantity: Number(event.target.value) || 1 } : row))
-                )
-              }
-              className="h-11 w-20 rounded-lg border border-slate-200 bg-white px-2 text-center text-sm dark:border-slate-700 dark:bg-slate-950"
-            />
-            {items.length > 1 ? (
-              <button
-                type="button"
-                onClick={() => setItems((prev) => prev.filter((row) => row.key !== item.key))}
-                className="flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-900"
-                aria-label="Remove product"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            ) : null}
-            {index === items.length - 1 && products.length > 1 ? (
-              <button
-                type="button"
-                onClick={() => setItems((prev) => [...prev, { key: nextRowKey(), productId: products[0]?.id ?? '', quantity: 1 }])}
-                className="flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-900"
-                aria-label="Add another product"
-              >
-                <Plus className="h-4 w-4" />
-              </button>
-            ) : null}
-          </div>
-        ))}
-      </div>
+          </label>
+          <label className="space-y-1 text-sm font-medium text-foreground">
+            Commune
+            <select
+              name="communeId"
+              required={hasSelection}
+              disabled={!selectedWilaya}
+              className="flex h-11 w-full rounded-lg border border-border bg-surface px-3 text-sm text-foreground disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <option value="">Select commune</option>
+              {filteredCommunes.map((commune) => (
+                <option key={commune.id} value={commune.id}>
+                  {commune.nameFr}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
 
-      <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-slate-300">
-        Note (optional)
-        <textarea
-          name="notes"
-          rows={2}
-          placeholder="Anything we should know about your order?"
-          className="flex min-h-14 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
-        />
-      </label>
+        <label className="block space-y-1 text-sm font-medium text-foreground">
+          Delivery address
+          <textarea
+            name="address"
+            required={hasSelection}
+            rows={2}
+            placeholder="Street, building, landmark..."
+            className="flex min-h-16 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          />
+        </label>
 
-      <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-900">
-        <span className="text-slate-600 dark:text-slate-400">Estimated total</span>
-        <span className="font-semibold text-slate-900 dark:text-slate-100">{estimatedTotal.toLocaleString()} DZD</span>
-      </div>
-      <p className="text-xs text-slate-500 dark:text-slate-400">Cash on delivery. Our team will call you to confirm before shipping.</p>
+        <label className="block space-y-1 text-sm font-medium text-foreground">
+          Note (optional)
+          <textarea
+            name="notes"
+            rows={2}
+            placeholder="Anything we should know about your order?"
+            className="flex min-h-14 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          />
+        </label>
 
-      <button
-        type="submit"
-        style={{ backgroundColor: accent }}
-        className="flex h-12 w-full items-center justify-center rounded-lg text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
-      >
-        Place order
-      </button>
+        <p className="text-xs text-muted-foreground">Cash on delivery. Our team will call you to confirm before shipping.</p>
+
+        <button
+          type="submit"
+          disabled={!hasSelection}
+          style={{ backgroundColor: accent }}
+          className="flex h-12 w-full items-center justify-center rounded-lg text-sm font-semibold text-white shadow-soft transition hover:opacity-90 disabled:opacity-50"
+        >
+          Place order · {total.toLocaleString()} DZD
+        </button>
+      </section>
     </form>
   );
 }

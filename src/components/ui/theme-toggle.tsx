@@ -8,11 +8,7 @@ export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <Button
-      type="button"
-      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className="gap-2"
-    >
+    <Button type="button" variant="outline" size="sm" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
       {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
       {theme === 'dark' ? 'Light' : 'Dark'}
     </Button>

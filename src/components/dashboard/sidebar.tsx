@@ -1,23 +1,58 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { LayoutDashboard, Package, Users, ShoppingBag, BarChart3, Settings, Boxes } from 'lucide-react';
+import clsx from 'clsx';
 import { siteNav } from '@/config/nav';
 
-export function DashboardSidebar() {
+const ICONS = {
+  'layout-dashboard': LayoutDashboard,
+  package: Package,
+  users: Users,
+  'shopping-bag': ShoppingBag,
+  'bar-chart-3': BarChart3,
+  settings: Settings
+} as const;
+
+export function DashboardSidebar({ orgName }: { orgName: string }) {
+  const pathname = usePathname();
+
   return (
-    <aside className="w-72 border-r border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950">
-      <div className="space-y-6">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Menu</p>
-          <nav className="mt-4 space-y-2">
-            {siteNav.map((item) => (
-              <Link key={item.href} href={item.href} className="block rounded-lg px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
-                {item.title}
-              </Link>
-            ))}
-          </nav>
+    <div className="flex h-full flex-col">
+      <div className="flex items-center gap-2 px-6 py-5">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <Boxes className="h-4.5 w-4.5" />
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-foreground">{orgName}</p>
+          <p className="text-xs text-muted-foreground">DZ Orders</p>
         </div>
       </div>
-    </aside>
+
+      <nav className="flex-1 space-y-1 px-3">
+        {siteNav.map((item) => {
+          const Icon = ICONS[item.icon];
+          const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={clsx(
+                'group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-surface-hover hover:text-foreground'
+              )}
+            >
+              {isActive ? <span className="absolute -left-3 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-primary" /> : null}
+              <Icon className="h-4 w-4 shrink-0" />
+              {item.title}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="px-6 py-4 text-xs text-muted-foreground">Made for Algerian merchants 🇩🇿</div>
+    </div>
   );
 }

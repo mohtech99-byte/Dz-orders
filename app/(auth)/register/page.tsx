@@ -37,14 +37,14 @@ export default function RegisterPage() {
       return;
     }
 
-    setMessage(data.message || 'Account created successfully.');
-    router.push('/login');
+    setMessage(data.message || 'Account created. Check your inbox to verify your email.');
+    router.push('/verify-email');
   };
 
   return (
-    <div className="mx-auto max-w-md rounded-3xl border border-slate-200 bg-white p-10 shadow-lg dark:border-slate-800 dark:bg-slate-950">
-      <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Create account</h1>
-      <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Start with a free workspace for your store.</p>
+    <div className="mx-auto w-full max-w-md rounded-3xl border border-border bg-surface p-10 shadow-elevated">
+      <h1 className="text-2xl font-semibold tracking-tight text-foreground">Create account</h1>
+      <p className="mt-2 text-sm text-muted-foreground">Start with a free workspace for your store.</p>
       <form onSubmit={handleSubmit} className="mt-6 space-y-5">
         <div>
           <Label htmlFor="name">Name</Label>
@@ -58,13 +58,13 @@ export default function RegisterPage() {
           <Label htmlFor="password">Password</Label>
           <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </div>
-        {error ? <p className="text-sm text-rose-600">{error}</p> : null}
+        {error ? <p className="text-sm text-danger">{error}</p> : null}
         {message ? <p className="text-sm text-emerald-600">{message}</p> : null}
         <Button type="submit">Sign up</Button>
       </form>
-      <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">
+      <p className="mt-4 text-sm text-muted-foreground">
         Already have an account?{' '}
-        <Link href="/login" className="font-medium text-slate-900 dark:text-slate-100">
+        <Link href="/login" className="font-medium text-foreground hover:text-primary">
           Sign in
         </Link>
       </p>

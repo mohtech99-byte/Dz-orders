@@ -13,15 +13,15 @@ interface DashboardFiltersProps {
 export function DashboardFilters({ range, dateFrom, dateTo, status, source, paymentMethod }: DashboardFiltersProps) {
   return (
     <form
-      className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:flex-row md:flex-wrap md:items-end dark:border-slate-800 dark:bg-slate-950"
+      className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 shadow-card md:flex-row md:flex-wrap md:items-end"
       method="get"
     >
-      <label className="flex flex-col gap-1 text-xs font-medium text-slate-600 dark:text-slate-400">
+      <label className="flex flex-col gap-1 text-xs font-medium text-muted-foreground">
         Range
         <select
           name="range"
           defaultValue={range}
-          className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+          className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           <option value="today">Today</option>
           <option value="week">This week</option>
@@ -30,32 +30,32 @@ export function DashboardFilters({ range, dateFrom, dateTo, status, source, paym
         </select>
       </label>
 
-      <label className="flex flex-col gap-1 text-xs font-medium text-slate-600 dark:text-slate-400">
+      <label className="flex flex-col gap-1 text-xs font-medium text-muted-foreground">
         From
         <input
           type="date"
           name="dateFrom"
           defaultValue={dateFrom ?? ''}
-          className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+          className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         />
       </label>
 
-      <label className="flex flex-col gap-1 text-xs font-medium text-slate-600 dark:text-slate-400">
+      <label className="flex flex-col gap-1 text-xs font-medium text-muted-foreground">
         To
         <input
           type="date"
           name="dateTo"
           defaultValue={dateTo ?? ''}
-          className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+          className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         />
       </label>
 
-      <label className="flex flex-col gap-1 text-xs font-medium text-slate-600 dark:text-slate-400">
+      <label className="flex flex-col gap-1 text-xs font-medium text-muted-foreground">
         Status
         <select
           name="status"
           defaultValue={status ?? 'ALL'}
-          className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+          className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           <option value="ALL">All statuses</option>
           <option value="NEW">New</option>
@@ -70,12 +70,12 @@ export function DashboardFilters({ range, dateFrom, dateTo, status, source, paym
         </select>
       </label>
 
-      <label className="flex flex-col gap-1 text-xs font-medium text-slate-600 dark:text-slate-400">
+      <label className="flex flex-col gap-1 text-xs font-medium text-muted-foreground">
         Source
         <select
           name="source"
           defaultValue={source ?? 'ALL'}
-          className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+          className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           <option value="ALL">All sources</option>
           <option value="FACEBOOK">Facebook</option>
@@ -87,12 +87,12 @@ export function DashboardFilters({ range, dateFrom, dateTo, status, source, paym
         </select>
       </label>
 
-      <label className="flex flex-col gap-1 text-xs font-medium text-slate-600 dark:text-slate-400">
+      <label className="flex flex-col gap-1 text-xs font-medium text-muted-foreground">
         Payment
         <select
           name="paymentMethod"
           defaultValue={paymentMethod ?? 'ALL'}
-          className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+          className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           <option value="ALL">All payments</option>
           <option value="COD">Cash on delivery</option>

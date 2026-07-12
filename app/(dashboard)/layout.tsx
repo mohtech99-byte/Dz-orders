@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import '../globals.css';
-import { DashboardSidebar } from '@/components/dashboard/sidebar';
-import { DashboardTopbar } from '@/components/dashboard/topbar';
+import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { authOptions } from '@/lib/auth';
+import { getOwnOrganization } from '@/server/services/organization';
 
 export const metadata: Metadata = {
   title: 'Dashboard - DZ Orders'
@@ -17,15 +17,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/login');
   }
 
+  const organization = await getOwnOrganization();
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <div className="grid min-h-screen grid-cols-[280px_1fr]">
-        <DashboardSidebar />
-        <main className="space-y-6 p-6">
-          <DashboardTopbar />
-          {children}
-        </main>
-      </div>
-    </div>
+    <DashboardShell orgName={organization.name} userName={session.user?.name ?? 'Account'} userEmail={session.user?.email ?? ''}>
+      {children}
+    </DashboardShell>
   );
 }

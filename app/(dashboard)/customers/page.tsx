@@ -1,10 +1,11 @@
 import Link from 'next/link';
+import { Search, Plus } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
-
-export const dynamic = 'force-dynamic';
 import { Button } from '@/components/ui/button';
 import { CustomerTable } from '@/components/customers/customer-table';
 import { listCustomers } from '@/server/services/customers';
+
+export const dynamic = 'force-dynamic';
 
 interface CustomersPageProps {
   searchParams: {
@@ -25,35 +26,43 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <PageHeader title="Customers" description="Manage your tenant customer directory." />
-        <Button asChild>
-          <Link href="/customers/new">Create customer</Link>
-        </Button>
-      </div>
+      <PageHeader
+        title="Customers"
+        description="Manage your tenant customer directory."
+        actions={
+          <Button asChild>
+            <Link href="/customers/new">
+              <Plus className="h-4 w-4" /> Create customer
+            </Link>
+          </Button>
+        }
+      />
 
-      <form className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:flex-row dark:border-slate-800 dark:bg-slate-950" method="get">
-        <input
-          name="search"
-          defaultValue={searchParams.search ?? ''}
-          placeholder="Search by name, phone, or address"
-          className="flex-1 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
-        />
-        <select name="status" defaultValue={searchParams.status ?? ''} className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950">
+      <form className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 shadow-card md:flex-row" method="get">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            name="search"
+            defaultValue={searchParams.search ?? ''}
+            placeholder="Search by name, phone, or address"
+            className="h-10 w-full rounded-lg border border-border bg-surface pl-9 pr-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          />
+        </div>
+        <select
+          name="status"
+          defaultValue={searchParams.status ?? ''}
+          className="h-10 rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
           <option value="">All customers</option>
           <option value="true">Blacklisted</option>
           <option value="false">Active</option>
         </select>
-        <Button type="submit">Apply</Button>
+        <Button type="submit" variant="secondary">
+          Apply
+        </Button>
       </form>
 
-      {data.items.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-600 dark:border-slate-700 dark:text-slate-400">
-          No customers match your current filters.
-        </div>
-      ) : (
-        <CustomerTable customers={data.items} totalPages={data.totalPages} currentPage={data.page} basePath="/customers" />
-      )}
+      <CustomerTable customers={data.items} totalPages={data.totalPages} currentPage={data.page} basePath="/customers" />
     </div>
   );
 }

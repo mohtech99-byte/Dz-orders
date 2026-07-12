@@ -19,15 +19,15 @@ export function BarSeriesChart({
   description,
   data,
   formatValue = (value) => value.toLocaleString(),
-  barColorClassName = 'fill-slate-900 dark:fill-slate-100',
+  barColorClassName = 'fill-primary',
   emptyMessage = 'No data for this period yet.'
 }: BarSeriesChartProps) {
   if (data.length === 0) {
     return (
-      <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+      <div className="space-y-3 rounded-2xl border border-border bg-surface p-6 shadow-card">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
-          {description ? <p className="text-sm text-slate-600 dark:text-slate-400">{description}</p> : null}
+          <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+          {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
         </div>
         <EmptyState title="No orders yet" description={emptyMessage} />
       </div>
@@ -42,24 +42,24 @@ export function BarSeriesChart({
   const peak = data.reduce((max, point) => (point.value > max.value ? point : max), data[0]);
 
   return (
-    <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+    <div className="space-y-3 rounded-2xl border border-border bg-surface p-6 shadow-card">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
-          {description ? <p className="text-sm text-slate-600 dark:text-slate-400">{description}</p> : null}
+          <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+          {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
         </div>
-        <div className="text-right text-xs text-slate-500 dark:text-slate-400">
+        <div className="text-right text-xs text-muted-foreground">
           <div>
-            Latest: <span className="font-medium text-slate-900 dark:text-slate-100">{formatValue(latest.value)}</span>
+            Latest: <span className="font-medium text-foreground">{formatValue(latest.value)}</span>
           </div>
           <div>
-            Peak: <span className="font-medium text-slate-900 dark:text-slate-100">{formatValue(peak.value)}</span>
+            Peak: <span className="font-medium text-foreground">{formatValue(peak.value)}</span>
           </div>
         </div>
       </div>
 
       <svg viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} className="h-40 w-full" preserveAspectRatio="none" role="img" aria-label={title}>
-        <line x1={0} y1={CHART_HEIGHT - 1} x2={CHART_WIDTH} y2={CHART_HEIGHT - 1} className="stroke-slate-200 dark:stroke-slate-800" strokeWidth={1} />
+        <line x1={0} y1={CHART_HEIGHT - 1} x2={CHART_WIDTH} y2={CHART_HEIGHT - 1} className="stroke-border" strokeWidth={1} />
         {data.map((point, index) => {
           const barHeight = Math.max((point.value / maxValue) * (CHART_HEIGHT - 24), point.value > 0 ? 2 : 0);
           const x = PADDING_X + index * barWidth + (barWidth - innerBarWidth) / 2;
@@ -75,7 +75,7 @@ export function BarSeriesChart({
         })}
       </svg>
 
-      <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
+      <div className="flex justify-between text-xs text-muted-foreground">
         <span>{data[0].date}</span>
         <span>{data[data.length - 1].date}</span>
       </div>

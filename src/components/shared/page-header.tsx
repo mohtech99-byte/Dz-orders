@@ -1,17 +1,17 @@
-'use client';
-
-import * as React from 'react';
-
 interface PageHeaderProps {
   title: string;
   description?: string;
+  actions?: React.ReactNode;
 }
 
-export function PageHeader({ title, description }: PageHeaderProps) {
+export function PageHeader({ title, description, actions }: PageHeaderProps) {
   return (
-    <div className="space-y-1 pb-6">
-      <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{title}</h1>
-      {description ? <p className="text-sm text-slate-600 dark:text-slate-400">{description}</p> : null}
+    <div className="flex flex-col gap-4 pb-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
+        {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
+      </div>
+      {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
     </div>
   );
 }

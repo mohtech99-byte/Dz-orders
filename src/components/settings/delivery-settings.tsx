@@ -13,16 +13,16 @@ interface CompanyRow {
 
 export function DeliverySettings({ rows }: { rows: CompanyRow[] }) {
   return (
-    <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+    <div className="space-y-4 rounded-2xl border border-border bg-surface p-6 shadow-card">
       <div>
-        <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">Delivery companies</h3>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Delivery companies</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
           Connect a company&apos;s API to create shipments automatically. Companies without an integration yet still work —
           you&apos;ll enter their tracking number manually after booking with them.
         </p>
       </div>
 
-      <div className="divide-y divide-slate-100 dark:divide-slate-800">
+      <div className="divide-y divide-border">
         {rows.map((row) => (
           <CompanyRow key={row.company.id} row={row} />
         ))}
@@ -40,8 +40,8 @@ function CompanyRow({ row }: { row: CompanyRow }) {
   if (!hasProvider) {
     return (
       <div className="flex items-center justify-between py-3">
-        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{company.name}</span>
-        <span className="text-xs text-slate-500 dark:text-slate-400">Manual tracking only</span>
+        <span className="text-sm font-medium text-foreground">{company.name}</span>
+        <span className="text-xs text-muted-foreground">Manual tracking only</span>
       </div>
     );
   }
@@ -49,14 +49,14 @@ function CompanyRow({ row }: { row: CompanyRow }) {
   return (
     <div className="space-y-2 py-4">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{company.name}</span>
+        <span className="text-sm font-medium text-foreground">{company.name}</span>
         {credential?.lastTestedAt ? (
           credential.lastTestOk ? (
-            <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
+            <span className="flex items-center gap-1 text-xs text-success">
               <CheckCircle2 className="h-3.5 w-3.5" /> Connected
             </span>
           ) : (
-            <span className="flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400">
+            <span className="flex items-center gap-1 text-xs text-danger">
               <XCircle className="h-3.5 w-3.5" /> Connection failed
             </span>
           )
@@ -68,14 +68,14 @@ function CompanyRow({ row }: { row: CompanyRow }) {
           value={apiId}
           onChange={(event) => setApiId(event.target.value)}
           placeholder="API ID"
-          className="h-9 w-40 rounded-md border border-slate-200 bg-white px-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+          className="h-9 w-40 rounded-lg border border-border bg-surface px-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         />
         <input
           value={apiToken}
           onChange={(event) => setApiToken(event.target.value)}
           type="password"
           placeholder="API Token"
-          className="h-9 w-48 rounded-md border border-slate-200 bg-white px-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+          className="h-9 w-48 rounded-lg border border-border bg-surface px-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         />
         <form
           action={(formData) => {
@@ -86,10 +86,7 @@ function CompanyRow({ row }: { row: CompanyRow }) {
         >
           <input type="hidden" name="apiId" value={apiId} />
           <input type="hidden" name="apiToken" value={apiToken} />
-          <Button
-            type="submit"
-            className="h-9 bg-white text-slate-900 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
-          >
+          <Button type="submit" variant="secondary" size="sm" className="h-9">
             Save
           </Button>
         </form>
@@ -97,7 +94,9 @@ function CompanyRow({ row }: { row: CompanyRow }) {
           type="button"
           disabled={isPending || !credential?.apiId}
           onClick={() => startTransition(() => testDeliveryCredentialAction(company.id))}
-          className="h-9 bg-white text-slate-900 hover:bg-slate-100 disabled:opacity-50 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+          variant="secondary"
+          size="sm"
+          className="h-9"
         >
           {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Test connection'}
         </Button>

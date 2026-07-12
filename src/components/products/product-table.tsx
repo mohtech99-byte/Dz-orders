@@ -1,6 +1,8 @@
-'use client';
-
 import Link from 'next/link';
+import { Eye, Pencil, ShoppingBag } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { EmptyState } from '@/components/shared/empty-state';
+import { Pagination } from '@/components/shared/pagination';
 import type { Category, Product } from '@prisma/client';
 
 interface ProductTableProps {
@@ -10,67 +12,97 @@ interface ProductTableProps {
   basePath: string;
 }
 
+function StockBadge({ stock }: { stock: number }) {
+  if (stock <= 0) {
+    return (
+      <Badge tone="danger" dot>
+        Out of stock
+      </Badge>
+    );
+  }
+
+  if (stock <= 10) {
+    return (
+      <Badge tone="warning" dot>
+        Low · {stock}
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge tone="success" dot>
+      {stock} in stock
+    </Badge>
+  );
+}
+
 export function ProductTable({ products, totalPages, currentPage, basePath }: ProductTableProps) {
+  if (products.length === 0) {
+    return (
+      <EmptyState icon={ShoppingBag} title="No products yet" description="Add your first product to start building orders." />
+    );
+  }
+
   return (
     <div className="space-y-4">
-      <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800">
-        <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
-          <thead className="bg-slate-50 dark:bg-slate-900">
-            <tr>
-              <th className="px-4 py-3 text-left font-medium">Name</th>
-              <th className="px-4 py-3 text-left font-medium">Category</th>
-              <th className="px-4 py-3 text-left font-medium">Price</th>
-              <th className="px-4 py-3 text-left font-medium">Stock</th>
-              <th className="px-4 py-3 text-left font-medium">Status</th>
-              <th className="px-4 py-3 text-left font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-950">
-            {products.map((product) => (
-              <tr key={product.id}>
-                <td className="px-4 py-3">
-                  <div className="font-medium">{product.name}</div>
-                  {product.sku ? <div className="text-xs text-slate-500">SKU: {product.sku}</div> : null}
-                </td>
-                <td className="px-4 py-3">{product.category?.name ?? 'Uncategorized'}</td>
-                <td className="px-4 py-3">{product.price} DZD</td>
-                <td className="px-4 py-3">{product.stock}</td>
-                <td className="px-4 py-3">
-                  {product.status === 'ACTIVE' ? (
-                    <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs text-emerald-700">Active</span>
-                  ) : (
-                    <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700">Inactive</span>
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <Link href={`${basePath}/${product.id}`} className="text-sm font-medium text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
-                      View
-                    </Link>
-                    <Link href={`${basePath}/${product.id}/edit`} className="text-sm font-medium text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
-                      Edit
-                    </Link>
-                  </div>
-                </td>
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-card">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-border text-sm">
+            <thead className="sticky top-0 z-10 bg-surface-hover/80 backdrop-blur">
+              <tr>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Name</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Category</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Price</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Stock</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {products.map((product) => (
+                <tr key={product.id} className="transition-colors hover:bg-surface-hover">
+                  <td className="px-4 py-3">
+                    <Link href={`${basePath}/${product.id}`} className="font-medium text-foreground hover:text-primary">
+                      {product.name}
+                    </Link>
+                    {product.sku ? <div className="font-data text-xs text-muted-foreground">SKU: {product.sku}</div> : null}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">{product.category?.name ?? 'Uncategorized'}</td>
+                  <td className="whitespace-nowrap px-4 py-3 tabular-nums text-foreground">{product.price.toLocaleString()} DZD</td>
+                  <td className="px-4 py-3">
+                    <StockBadge stock={product.stock} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge tone={product.status === 'ACTIVE' ? 'success' : 'neutral'} dot>
+                      {product.status === 'ACTIVE' ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-1">
+                      <Link
+                        href={`${basePath}/${product.id}`}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+                        aria-label="View product"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                      <Link
+                        href={`${basePath}/${product.id}/edit`}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+                        aria-label="Edit product"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Link>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {totalPages > 1 ? (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-slate-600 dark:text-slate-400">Page {currentPage} of {totalPages}</div>
-          <div className="flex gap-2">
-            <Link href={`${basePath}?page=${Math.max(1, currentPage - 1)}`} className="rounded-md border border-slate-200 px-3 py-2 text-sm dark:border-slate-700">
-              Previous
-            </Link>
-            <Link href={`${basePath}?page=${Math.min(totalPages, currentPage + 1)}`} className="rounded-md border border-slate-200 px-3 py-2 text-sm dark:border-slate-700">
-              Next
-            </Link>
-          </div>
-        </div>
-      ) : null}
+      <Pagination totalPages={totalPages} currentPage={currentPage} basePath={basePath} />
     </div>
   );
 }

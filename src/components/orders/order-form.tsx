@@ -70,7 +70,7 @@ export function OrderForm({ initialValues, orderId, customers, products, wilayas
       }) : ((formData: FormData) => {
         void createOrderAction(formData);
       })}
-      className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950"
+      className="space-y-6 rounded-2xl border border-border bg-surface p-6 shadow-card"
     >
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-2">
@@ -80,7 +80,7 @@ export function OrderForm({ initialValues, orderId, customers, products, wilayas
             name="customerId"
             value={selectedCustomerId}
             onChange={(event) => handleCustomerChange(event.target.value)}
-            className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+            className="flex h-10 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             required
           >
             <option value="">Select a customer</option>
@@ -93,7 +93,7 @@ export function OrderForm({ initialValues, orderId, customers, products, wilayas
         </div>
         <div className="space-y-2">
           <Label htmlFor="source">Order source</Label>
-          <select id="source" name="source" defaultValue={initialValues?.source ?? 'MANUAL'} className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950">
+          <select id="source" name="source" defaultValue={initialValues?.source ?? 'MANUAL'} className="flex h-10 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
             <option value="MANUAL">Manual</option>
             <option value="FACEBOOK">Facebook</option>
             <option value="INSTAGRAM">Instagram</option>
@@ -113,7 +113,7 @@ export function OrderForm({ initialValues, orderId, customers, products, wilayas
             name="wilayaId"
             value={selectedWilaya}
             onChange={(event) => setSelectedWilaya(event.target.value)}
-            className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+            className="flex h-10 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             required
           >
             <option value="">Select a wilaya</option>
@@ -126,7 +126,7 @@ export function OrderForm({ initialValues, orderId, customers, products, wilayas
         </div>
         <div className="space-y-2">
           <Label htmlFor="communeId">Commune</Label>
-          <select id="communeId" name="communeId" value={selectedCommune} onChange={(event) => setSelectedCommune(event.target.value)} className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950" required disabled={!selectedWilaya}>
+          <select id="communeId" name="communeId" value={selectedCommune} onChange={(event) => setSelectedCommune(event.target.value)} className="flex h-10 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" required disabled={!selectedWilaya}>
             <option value="">Select a commune</option>
             {availableCommunes.map((commune) => (
               <option key={commune.id} value={commune.id}>
@@ -141,7 +141,7 @@ export function OrderForm({ initialValues, orderId, customers, products, wilayas
         </div>
         <div className="space-y-2">
           <Label htmlFor="deliveryCompanyId">Delivery company</Label>
-          <select id="deliveryCompanyId" name="deliveryCompanyId" defaultValue={initialValues?.deliveryCompanyId ?? ''} className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950">
+          <select id="deliveryCompanyId" name="deliveryCompanyId" defaultValue={initialValues?.deliveryCompanyId ?? ''} className="flex h-10 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
             <option value="">None</option>
             {deliveryCompanies.map((company) => (
               <option key={company.id} value={company.id}>
@@ -152,7 +152,7 @@ export function OrderForm({ initialValues, orderId, customers, products, wilayas
         </div>
         <div className="space-y-2">
           <Label htmlFor="deliveryType">Delivery type</Label>
-          <select id="deliveryType" name="deliveryType" defaultValue={initialValues?.deliveryType ?? 'HOME'} className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950">
+          <select id="deliveryType" name="deliveryType" defaultValue={initialValues?.deliveryType ?? 'HOME'} className="flex h-10 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
             <option value="HOME">Home delivery</option>
             <option value="STOP_DESK">Stop desk</option>
           </select>
@@ -167,14 +167,14 @@ export function OrderForm({ initialValues, orderId, customers, products, wilayas
         </div>
         <div className="space-y-2">
           <Label htmlFor="paymentMethod">Payment method</Label>
-          <select id="paymentMethod" name="paymentMethod" defaultValue={initialValues?.paymentMethod ?? 'COD'} className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950">
+          <select id="paymentMethod" name="paymentMethod" defaultValue={initialValues?.paymentMethod ?? 'COD'} className="flex h-10 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
             <option value="COD">Cash on delivery</option>
             <option value="PREPAID">Prepaid</option>
           </select>
         </div>
         <div className="space-y-2">
           <Label htmlFor="status">Status</Label>
-          <select id="status" name="status" defaultValue={initialValues?.status ?? 'NEW'} className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950">
+          <select id="status" name="status" defaultValue={initialValues?.status ?? 'NEW'} className="flex h-10 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
             <option value="NEW">New</option>
             <option value="CALLING">Calling</option>
             <option value="CONFIRMED">Confirmed</option>
@@ -191,17 +191,17 @@ export function OrderForm({ initialValues, orderId, customers, products, wilayas
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <Label>Products</Label>
-          <Button type="button" className="bg-white text-slate-900 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800" onClick={addItem}>
+          <Button type="button" variant="secondary" size="sm" onClick={addItem}>
             Add product
           </Button>
         </div>
         {items.map((item, index) => {
           const selectedProduct = products.find((product) => product.id === item.productId);
           return (
-            <div key={`${item.productId}-${index}`} className="grid gap-3 rounded-xl border border-slate-200 p-4 md:grid-cols-[2fr_1fr_auto] dark:border-slate-800">
+            <div key={`${item.productId}-${index}`} className="grid gap-3 rounded-xl border border-border p-4 md:grid-cols-[2fr_1fr_auto]">
               <div className="space-y-2">
                 <Label htmlFor={`itemProductId-${index}`}>Product</Label>
-                <select id={`itemProductId-${index}`} name="itemProductId" value={item.productId} onChange={(event) => updateItem(index, { productId: event.target.value, quantity: item.quantity })} className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950" required>
+                <select id={`itemProductId-${index}`} name="itemProductId" value={item.productId} onChange={(event) => updateItem(index, { productId: event.target.value, quantity: item.quantity })} className="flex h-10 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" required>
                   <option value="">Select a product</option>
                   {products.map((product) => (
                     <option key={product.id} value={product.id}>
@@ -215,11 +215,11 @@ export function OrderForm({ initialValues, orderId, customers, products, wilayas
                 <Input id={`itemQuantity-${index}`} name="itemQuantity" type="number" min="1" value={item.quantity} onChange={(event) => updateItem(index, { productId: item.productId, quantity: Number(event.target.value || 1) })} required />
               </div>
               <div className="flex items-end">
-                <Button type="button" className="bg-white text-slate-900 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800" onClick={() => removeItem(index)}>
+                <Button type="button" variant="outline" size="sm" onClick={() => removeItem(index)}>
                   Remove
                 </Button>
               </div>
-              {selectedProduct ? <p className="text-sm text-slate-500 md:col-span-2">{selectedProduct.name} · {selectedProduct.price} DZD each</p> : null}
+              {selectedProduct ? <p className="text-sm text-muted-foreground md:col-span-2">{selectedProduct.name} · {selectedProduct.price} DZD each</p> : null}
             </div>
           );
         })}
@@ -227,23 +227,23 @@ export function OrderForm({ initialValues, orderId, customers, products, wilayas
 
       <div className="space-y-2">
         <Label htmlFor="notes">Notes</Label>
-        <textarea id="notes" name="notes" defaultValue={initialValues?.notes ?? ''} rows={4} className="flex min-h-24 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950" />
+        <textarea id="notes" name="notes" defaultValue={initialValues?.notes ?? ''} rows={4} className="flex min-h-24 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/80">
+      <div className="rounded-xl border border-border bg-surface-hover p-4">
         <div className="flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between">
-          <span>Subtotal</span>
-          <span className="font-semibold">{calculatedTotals.subtotal} DZD</span>
+          <span className="text-muted-foreground">Subtotal</span>
+          <span className="tabular-nums font-semibold text-foreground">{calculatedTotals.subtotal.toLocaleString()} DZD</span>
         </div>
         <div className="flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between">
-          <span>Total</span>
-          <span className="font-semibold">{calculatedTotals.total} DZD</span>
+          <span className="text-muted-foreground">Total</span>
+          <span className="tabular-nums font-semibold text-foreground">{calculatedTotals.total.toLocaleString()} DZD</span>
         </div>
       </div>
 
       <div className="flex items-center gap-3">
         <Button type="submit">{orderId ? 'Save changes' : 'Create order'}</Button>
-        <Button type="button" className="bg-white text-slate-900 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800" onClick={() => router.back()}>
+        <Button type="button" variant="secondary" onClick={() => router.back()}>
           Cancel
         </Button>
       </div>

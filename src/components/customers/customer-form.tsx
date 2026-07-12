@@ -36,7 +36,7 @@ export function CustomerForm({ initialValues, customerId, wilayas, communes }: C
       }) : ((formData: FormData) => {
         void createCustomerAction(formData);
       })}
-      className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950"
+      className="space-y-6 rounded-2xl border border-border bg-surface p-6 shadow-card"
     >
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-2">
@@ -58,7 +58,7 @@ export function CustomerForm({ initialValues, customerId, wilayas, communes }: C
             name="wilayaId"
             value={selectedWilaya}
             onChange={(event) => handleWilayaChange(event.target.value)}
-            className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+            className="flex h-10 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             required
           >
             <option value="">Select a wilaya</option>
@@ -76,7 +76,7 @@ export function CustomerForm({ initialValues, customerId, wilayas, communes }: C
             name="communeId"
             value={selectedCommune}
             onChange={(event) => setSelectedCommune(event.target.value)}
-            className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+            className="flex h-10 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             required
             disabled={!selectedWilaya}
           >
@@ -101,18 +101,18 @@ export function CustomerForm({ initialValues, customerId, wilayas, communes }: C
           name="notes"
           defaultValue={initialValues?.notes ?? ''}
           rows={4}
-          className="flex min-h-24 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+          className="flex min-h-24 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         />
       </div>
 
-      <label className="flex items-center gap-3 rounded-lg border border-slate-200 p-3 text-sm dark:border-slate-700">
+      <label className="flex items-center gap-3 rounded-lg border border-border p-3 text-sm">
         <input type="checkbox" name="isBlacklisted" defaultChecked={Boolean(initialValues?.isBlacklisted)} />
         <span>Mark as blacklisted</span>
       </label>
 
       <div className="flex items-center gap-3">
         <Button type="submit">{customerId ? 'Save changes' : 'Create customer'}</Button>
-        <Button type="button" className="bg-white text-slate-900 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800" onClick={() => router.back()}>
+        <Button type="button" variant="secondary" onClick={() => router.back()}>
           Cancel
         </Button>
       </div>

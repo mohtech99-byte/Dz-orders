@@ -18,21 +18,21 @@ export function OriginSettings({ wilayas, communes, currentWilayaId, currentComm
   const filteredCommunes = useMemo(() => communes.filter((commune) => String(commune.wilayaId) === wilayaId), [communes, wilayaId]);
 
   return (
-    <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+    <div className="space-y-4 rounded-2xl border border-border bg-surface p-6 shadow-card">
       <div>
-        <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">Ship-from location</h3>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Required by delivery companies to calculate routes and pricing.</p>
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Ship-from location</h3>
+        <p className="mt-1 text-sm text-muted-foreground">Required by delivery companies to calculate routes and pricing.</p>
       </div>
 
       <form action={updateOrganizationOriginAction} className="flex flex-wrap items-end gap-3">
-        <label className="space-y-1 text-xs font-medium text-slate-600 dark:text-slate-400">
+        <label className="space-y-1 text-xs font-medium text-muted-foreground">
           Wilaya
           <select
             name="wilayaId"
             required
             value={wilayaId}
             onChange={(event) => setWilayaId(event.target.value)}
-            className="flex h-10 w-48 rounded-md border border-slate-200 bg-white px-3 text-sm dark:border-slate-700 dark:bg-slate-950"
+            className="flex h-10 w-48 rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <option value="">Select wilaya</option>
             {wilayas.map((wilaya) => (
@@ -42,14 +42,14 @@ export function OriginSettings({ wilayas, communes, currentWilayaId, currentComm
             ))}
           </select>
         </label>
-        <label className="space-y-1 text-xs font-medium text-slate-600 dark:text-slate-400">
+        <label className="space-y-1 text-xs font-medium text-muted-foreground">
           Commune
           <select
             name="communeId"
             required
             disabled={!wilayaId}
             defaultValue={currentCommuneId ?? ''}
-            className="flex h-10 w-48 rounded-md border border-slate-200 bg-white px-3 text-sm disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950"
+            className="flex h-10 w-48 rounded-lg border border-border bg-surface px-3 text-sm text-foreground disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <option value="">Select commune</option>
             {filteredCommunes.map((commune) => (

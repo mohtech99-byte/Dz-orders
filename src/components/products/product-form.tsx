@@ -23,7 +23,7 @@ export function ProductForm({ initialValues, productId, categories }: ProductFor
       }) : ((formData: FormData) => {
         void createProductAction(formData);
       })}
-      className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950"
+      className="space-y-6 rounded-2xl border border-border bg-surface p-6 shadow-card"
     >
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-2">
@@ -32,7 +32,7 @@ export function ProductForm({ initialValues, productId, categories }: ProductFor
         </div>
         <div className="space-y-2">
           <Label htmlFor="categoryId">Category</Label>
-          <select id="categoryId" name="categoryId" defaultValue={initialValues?.categoryId ?? ''} className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950">
+          <select id="categoryId" name="categoryId" defaultValue={initialValues?.categoryId ?? ''} className="flex h-10 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
             <option value="">Uncategorized</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
@@ -63,7 +63,7 @@ export function ProductForm({ initialValues, productId, categories }: ProductFor
         </div>
         <div className="space-y-2">
           <Label htmlFor="status">Status</Label>
-          <select id="status" name="status" defaultValue={initialValues?.status ?? 'ACTIVE'} className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950">
+          <select id="status" name="status" defaultValue={initialValues?.status ?? 'ACTIVE'} className="flex h-10 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
             <option value="ACTIVE">Active</option>
             <option value="INACTIVE">Inactive</option>
           </select>
@@ -73,12 +73,12 @@ export function ProductForm({ initialValues, productId, categories }: ProductFor
       <div className="space-y-2">
         <Label htmlFor="imageUrls">Images</Label>
         <Input id="imageUrls" name="imageUrls" placeholder="Image upload support will be added later" disabled />
-        <p className="text-xs text-slate-500">Image upload is wired as a placeholder for future storage integration.</p>
+        <p className="text-xs text-muted-foreground">Image upload is wired as a placeholder for future storage integration.</p>
       </div>
 
       <div className="flex items-center gap-3">
         <Button type="submit">{productId ? 'Save changes' : 'Create product'}</Button>
-        <Button type="button" className="bg-white text-slate-900 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800" onClick={() => router.back()}>
+        <Button type="button" variant="secondary" onClick={() => router.back()}>
           Cancel
         </Button>
       </div>

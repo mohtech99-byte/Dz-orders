@@ -24,10 +24,10 @@ export function StatusDonutChart({ data }: StatusDonutChartProps) {
   const total = data.reduce((sum, item) => sum + item.count, 0);
 
   return (
-    <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+    <div className="space-y-4 rounded-2xl border border-border bg-surface p-6 shadow-card">
       <div>
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Orders by status</h3>
-        <p className="text-sm text-slate-600 dark:text-slate-400">Current pipeline health for the selected period.</p>
+        <h3 className="text-lg font-semibold text-foreground">Orders by status</h3>
+        <p className="text-sm text-muted-foreground">Current pipeline health for the selected period.</p>
       </div>
 
       {total === 0 ? (
@@ -35,7 +35,7 @@ export function StatusDonutChart({ data }: StatusDonutChartProps) {
       ) : (
         <div className="flex flex-col items-center gap-6 sm:flex-row">
           <svg viewBox="0 0 140 140" className="h-36 w-36 -rotate-90" role="img" aria-label="Orders by status">
-            <circle cx={70} cy={70} r={RADIUS} fill="none" strokeWidth={16} className="stroke-slate-100 dark:stroke-slate-800" />
+            <circle cx={70} cy={70} r={RADIUS} fill="none" strokeWidth={16} className="stroke-border" />
             {(() => {
               let offset = 0;
               return data
@@ -77,8 +77,8 @@ export function StatusDonutChart({ data }: StatusDonutChartProps) {
               return (
                 <li key={item.status} className="flex items-center gap-2 text-sm">
                   <span className={`h-2.5 w-2.5 rounded-full ${colors.dot}`} />
-                  <span className="text-slate-700 dark:text-slate-300">{colors.label}</span>
-                  <span className="ml-auto font-medium text-slate-900 dark:text-slate-100">
+                  <span className="text-foreground">{colors.label}</span>
+                  <span className="ml-auto font-medium text-foreground">
                     {item.count} ({percentage}%)
                   </span>
                 </li>
